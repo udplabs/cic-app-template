@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class="h-100">
+
+  <head>
+    <meta charset="UTF-8" />
+    <title>AuthRocks! UI App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="/css/auth0-theme.css" />
+    <link rel="stylesheet" type="text/css" href="/css/loader.css" />
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/default.min.css"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/vs2015.min.css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css"
+      integrity="sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+" crossorigin="anonymous" />
+    <script src="https://kit.fontawesome.com/4199a717d7.js" crossorigin="anonymous"></script>
+
+  </head>
+
+  <body class="h-100">
+    <div id="app" class="h-100 d-flex flex-column">
+      <div class="nav-container sticky-top">
+        <nav class="navbar navbar-expand navbar-light bg-light">
+          <div class="container">
+            <div class="navbar-brand logo"></div>
+            <div class="navbar-expand d-flex w-100 align-items-center justify-content-between" id="navbarNav">
+              <ul class="navbar-nav mr-auto mx-3">
+                <li class="nav-item">
+                  <a href="/" class="nav-link route-link">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a href="https://www.auth.rocks" target="_blank" class="nav-link route-link">auth.rocks
+                    <i class="fa-solid fa-up-right-from-square fa-sm ml-3"></i>
+                  </a>
+                </li>
+              </ul>
+              <ul class="navbar-nav auth-invisible d-block">
+                <!-- Login button: show if NOT authenticated -->
+                <li class="nav-item auth-invisible">
+                  <button id="qsLoginBtn" class="btn btn-primary btn-block btn-margin auth-invisible hidden">
+                    Log in
+                  </button>
+                </li>
+                <!-- / Login button -->
+
+                <!-- Fullsize dropdown: show if authenticated -->
+                <li class="nav-item dropdown auth-visible hidden">
+                  <!-- Profile image should be set to the profile picture from the id token -->
+                  <div class="nav-link dropdown-toggle" style="cursor: pointer" data-bs-toggle="dropdown"
+                    id="profileDropdown">
+                    <img alt="Profile picture" class="nav-user-profile profile-image rounded-circle" width="50" />
+                  </div>
+                  <div class="dropdown-menu dropdown-menu-end">
+                    <!-- Show the user's full name from the id token here -->
+                    <div class="dropdown-header nav-user-name user-name px-2"></div>
+                    <a href="/profile" class="dropdown-item dropdown-profile route-link px-2">
+                      <i class="fas fa-user mr-4"></i> Profile
+                    </a>
+                    <a href="#" class="dropdown-item px-2" id="qsRefreshTokens">
+                      <i class="fas fa-recycle mr-4"></i> Refresh Tokens
+                    </a>
+                    <a href="#" class="dropdown-item px-2" id="qsLogoutBtn">
+                      <i class="fas fa-power-off mr-4"></i> Log out
+                    </a>
+                  </div>
+                </li>
+                <!-- /Fullsize dropdown -->
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </div>
+      <div id="loader-wrapper" class="d-flex justify-content-center x-loader">
+        <div id="loader" class="overlay show x-loader">
+          <div class="spanner show x-loader">
+            <div class="loader show x-loader">
+            </div>
+            <h3 id="loading-title">Hang tight!</h3>
+            <p id="loading-msg">The monkeys are working.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="main-content" class="container mt-5 flex-grow-1">
+        <div id="content-home" class="page">
+          <div class="text-center hero">
+            <img class="mb-3 app-logo"
+              src="https://cdn.glitch.global/daf663d9-c107-4fc9-87cb-b7395a5c1ccb/funauth-logo.png?v=1661435630972"
+              alt="funAuth/AuthRocks logo" width="75" />
+            <h1 class="mb-4">Welcome to AuthRocks!</h1>
+
+            <p id='content-lead' class="lead">
+              This is a sample application that demonstrates an authentication
+              flow for an SPA.
+            </p>
+          </div>
+
+          <div id="auth-content" class="next-steps auth-visible hidden">
+            <h2 id="content-title" class="col my-5 text-center">Congratulations, you've logged in!</h2>
+
+            <div class="row">
+              <!-- Begin Challenge 1: Token Section -->
+              <div id="challenge1Section" class="col mb-4">
+                <h4 class="mb-3">Challenge 1: Custom Application Sign-on</h4>
+                <p>
+                  You're seeing this content because you're currently
+                  <strong>logged in</strong>.
+                </p>
+                <label>
+                  <h5>Access token:</h5>
+                  <pre>
+                    <code id="ipt-access-token" class="json"></code>
+                  </pre>
+                </label>
+                <label>
+                  <h5>User profile:</h5>
+                  <pre class="rounded">
+                <code id="ipt-user-profile" class="json"></code></pre>
+                </label>
+              </div>
+              <!-- End Challenge 1: Token Section -->
+
+              <!-- Begin Challenge 2: API Section -->
+              <div id="challenge2Section" class="col mb-4">
+                <h4 class="mb-3">Challenge 2: Protect The API</h4>
+
+                <div>
+                  <label>Public API</label>
+                  <p>
+                    The first API is available to any calls, even without
+                    authentication.
+                  </p>
+                  <div class="mb-5 d-flex justify-content-center">
+                    <button id="public-api-btn" class="btn btn-primary mt-5">
+                      <span class="spinner-grow spinner-grow-sm me-2 hidden" role="status"
+                        aria-hidden="true"></span><span>Try API</span><span class="hidden">Loading...</span></button>
+                  </div>
+                  <label>Private API</label>
+                  <p>
+                    The second API requires authentication, and will only
+                    respond successfully with an access token from the
+                    configured tenant.
+                  </p>
+                  <div class="mb-5 d-flex justify-content-center">
+                    <button id="private-api-btn" class="btn btn-primary mt-5">
+                      <span class="spinner-grow spinner-grow-sm me-2 hidden" role="status"
+                        aria-hidden="true"></span><span>Try
+                        API</span><span class="hidden">Loading...</span></button>
+                  </div>
+                  <label>Scoped API</label>
+                  <p>
+                    The last API not only requires authentication, but also
+                    requires the proper authorization scopes/permissions in the access token.
+                  </p>
+                  <div class="mb-5 d-flex justify-content-center">
+                    <button id="scoped-api-btn" class="btn btn-primary mt-5">
+                      <span class="spinner-grow spinner-grow-sm me-2 hidden" role="status" aria-hidden="true"></span>
+                      <span>Try
+                        API</span>
+                      <span class="hidden">Loading...</span></button>
+                  </div>
+                  <div class="result-block-container">
+                    <div class="result-block reset-on-nav w-100">
+                      <h6 class="muted" id="anchor-results">Result</h6>
+                      <pre>
+                        <code class="js rounded" id="api-call-result"></code>
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- End Challenge 2: API Section -->
+            </div>
+          </div>
+        </div>
+
+        <div class="page" id="content-profile">
+          <div class="container">
+            <div class="row align-items-center profile-header">
+              <div class="col-md-2">
+                <img alt="User's profile picture" class="rounded-circle img-fluid profile-image mb-3 mb-md-0" />
+              </div>
+              <div class="col-md">
+                <h2 class="user-name"></h2>
+                <p class="lead text-muted user-email"></p>
+              </div>
+            </div>
+
+            <div class="row">
+              <pre class="rounded">
+                <code id="ipt-user-profile-data" class="json"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="bg-light text-center p-5">
+        <div class="logo"></div>
+        <p>
+          Sample project provided by
+          <a href="https://auth0.com">Auth0</a>
+        </p>
+      </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"></script>
+    <script type="module" src="main.js"></script>
+  </body>
+
+</html>

@@ -1,0 +1,20 @@
+.hidden {
+	display: none;
+}
+label {
+	margin-bottom: 2px;
+	display: block;
+}
+
+.navbar {
+	min-height: 115px;
+}
+
+button {
+	min-width: 150px;
+}
+
+pre,
+code {
+	white-space: pre-wrap;
+}

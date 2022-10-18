@@ -1,0 +1,7 @@
+{
+	"domain": "atko-rocks-gentle-animal.demo-platform-staging.auth0app.com",
+	"clientId": "RBz9va21UvCeuSTYT9nMoRTZah1iTnoH",
+	"permissions": ["authRocks"],
+	"audience": "api://authrocks",
+	"port": 3000
+}

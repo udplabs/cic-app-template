@@ -1,0 +1,41 @@
+{
+	"name": "auth-rocks-app",
+	"version": "1.0.0",
+	"description": "Template vanilla JS application using Node Express.",
+	"main": "server.js",
+	"type": "module",
+	"scripts": {
+		"start": "concurrently \"npm run dev:server\" \"npm run dev:app\"",
+		"dev:server": "nodemon",
+		"dev:app": "vite",
+		"build:app": "vite build",
+		"preview:app": "vite preview"
+	},
+	"keywords": [
+		"okta",
+		"auth.rocks",
+		"auth0",
+		"auth"
+	],
+	"author": "Danny Fuhriman",
+	"license": "MIT",
+	"devDependencies": {
+		"concurrently": "^7.4.0",
+		"nodemon": "^1.19.4",
+		"vite": "^3.1.8"
+	},
+	"dependencies": {
+		"@auth0/auth0-spa-js": "^1.22.4",
+		"assert": "^2.0.0",
+		"cors": "^2.8.5",
+		"dotenv": "^16.0.3",
+		"express": "^4.18.2",
+		"express-jwt": "^7.7.5",
+		"express-jwt-authz": "^2.4.1",
+		"helmet": "^3.23.3",
+		"highlight.js": "^11.6.0",
+		"jose": "^4.9.0",
+		"jwks-rsa": "^2.1.4",
+		"morgan": "^1.10.0"
+	}
+}
