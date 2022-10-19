@@ -5,12 +5,9 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import morgan from 'morgan';
 import helmet from 'helmet';
-import { expressjwt as jwt } from 'express-jwt';
-import jwksRsa from 'jwks-rsa';
-import jwtAuthz from 'express-jwt-authz';
 import cors from 'cors';
 import { existsSync } from 'fs';
-import * as jose from 'node-jose';
+import OktaJwtVerifier from './jwtVerifier';
 
 if (existsSync('.env.local')) {
 	dotenv.config({ path: `.env.local` });
@@ -23,6 +20,7 @@ const __dirname = dirname(__filename);
 
 const {
 	VITE_AUTH_DOMAIN: domain,
+	VITE_AUTH_CLIENT_ID: clientId,
 	VITE_AUTH_AUDIENCE: AUDIENCE = [],
 	VITE_AUTH_PERMISSIONS: PERMISSIONS = [],
 } = process.env;
@@ -31,7 +29,11 @@ const permissions = Array.isArray(PERMISSIONS)
 	? PERMISSIONS
 	: PERMISSIONS.split(' ');
 
-const audience = Array.isArray(AUDIENCE) ? AUDIENCE : AUDIENCE.split(' ');
+const audience = Array.isArray(AUDIENCE)
+	? AUDIENCE
+	: AUDIENCE.includes(', ')
+	? AUDIENCE.split(', ')
+	: AUDIENCE.split(',');
 
 const jwksUri = `https://${domain}/.well-known/jwks.json`;
 
@@ -49,70 +51,66 @@ app.use(morgan('dev'));
 app.use(helmet());
 app.use(express.static(join(__dirname, 'public')));
 
-const jwksRsaSecretOptions = {
-	cache: true,
-	rateLimit: true,
-	jwksRequestsPerMinute: 5,
-	jwksUri,
-};
-
-const expressJwtSecret = (options) => {
-	const jwksClient = jwksRsa(options);
-
-	const getSigningKeys = async () => {
-		const keys = await jwksClient.getKeys();
-
-		const keystore = await jose.JWK.asKeyStore({ keys });
-
-		return keystore.all({ use: 'sig' }).map((k) => ({
-			kid: k.kid,
-			alg: k.alg,
-			publicKey: k.toPEM(false),
-			rsaPublicKey: k.toPEM(false),
-			getPublicKey() {
-				return k.toPEM(false);
-			},
-		}));
+const verifyJwt = (options) => {
+	options = {
+		issuer,
+		clientId,
+		jwksUri,
+		...options,
 	};
 
-	const getSecret = async (req, token) => {
+	const verifier = new OktaJwtVerifier(options);
+
+	const verifyAccessToken = async (req, res, next) => {
+		let token;
+
 		try {
-			const { kid } = token?.header || {};
+			if (
+				req?.method === 'OPTIONS' &&
+				req.get('access-control-request-headers')
+			) {
+				console.log('doing OPTIONS');
+				const hasAuthInAccessControl = req
+					.get('access-control-request-headers')
+					?.split(',')
+					?.map((header) => header?.trim()?.toLowerCase())
+					?.includes('authorization');
 
-			const keys = await getSigningKeys();
-
-			const key = keys.find((k) => k.kid === kid);
-
-			return key.publicKey || key.rsaPublicKey;
-		} catch (error) {
-			console.log(error);
-
-			return new Promise((resolve, reject) => {
-				if (error) {
-					reject(error);
+				if (hasAuthInAccessControl) {
+					return next();
 				}
+			}
+			const authHeader = req.get('authorization');
+			const match = authHeader?.match(/Bearer (.+)/) || [];
 
-				resolve();
-			});
+			if (match.length < 1) {
+				return res
+					.status(401)
+					.send('Unable to parse `Authorization` header');
+			}
+
+			const accessToken = match[1];
+
+			req.jwt = await verifier.verifyAccessToken(
+				accessToken,
+				'api://authrocks,https://atko-rocks-gentle-animal.demo-platform-staging.auth0app.com/userinfo'
+			);
+
+			next();
+		} catch (error) {
+			const response = {
+				success: false,
+				message: error?.message,
+			};
+
+			console.log({ ...response, stack: error?.stack });
+
+			res.status(401).json(response);
 		}
 	};
 
-	return getSecret;
+	return verifyAccessToken;
 };
-
-const checkJwt = jwt({
-	// secret: jwksRsa.expressJwtSecret(jwksRsaSecretOptions),
-	secret: expressJwtSecret(jwksRsaSecretOptions),
-	audience,
-	issuer,
-	algorithms: ['RS256'],
-});
-
-const checkPermissions = jwtAuthz(permissions, {
-	customScopeKey: 'permissions',
-	customUserKey: 'auth',
-	failWithError: true,
-});
 
 app.get('/api/public', (req, res) =>
 	res.json({
@@ -122,7 +120,7 @@ app.get('/api/public', (req, res) =>
 	})
 );
 
-app.get('/api/private', checkJwt, (req, res) =>
+app.get('/api/private', verifyJwt(), (req, res) =>
 	res.json({
 		success: true,
 		message:
@@ -130,12 +128,15 @@ app.get('/api/private', checkJwt, (req, res) =>
 	})
 );
 
-app.get('/api/scoped', checkJwt, checkPermissions, (req, res) =>
-	res.json({
-		success: true,
-		message:
-			'This is the scoped API. Only a valid access token with both the correct audience AND valid permissions has access. You did it!',
-	})
+app.get(
+	'/api/scoped',
+	verifyJwt({ assertClaims: { 'permissions.includes': permissions } }),
+	(req, res) =>
+		res.json({
+			success: true,
+			message:
+				'This is the scoped API. Only a valid access token with both the correct audience AND valid permissions has access. You did it!',
+		})
 );
 
 app.use((err, req, res, next) => {
