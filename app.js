@@ -9,17 +9,6 @@ const { VITE_SERVER_PORT: PORT = 3001 } = import.meta;
 // Initialize global auth0
 var auth0 = undefined;
 
-var apiUrl = `http://${window.location.hostname}:${PORT}`;
-
-// Adjust for Stackblitz
-if (window.location.origin.includes('webcontainer.io')) {
-	const regex = /(?<=--)\d{0,4}/;
-
-	const href = window.location.origin;
-
-	apiUrl = href.replace(regex, PORT);
-}
-
 /**
  * Calls the API endpoint with an authorization token
  */
@@ -51,8 +40,6 @@ export const callApi = async ({ auth0, url, btnId }) => {
 			statusText,
 			...(await response.json()),
 		};
-
-		console.log(result);
 
 		return (appStateProvider.apiData = result);
 	} catch (error) {
@@ -107,7 +94,7 @@ export default async () => {
 	publicAPIButton.addEventListener('click', () =>
 		callApi({
 			auth0,
-			url: apiUrl + '/api/public',
+			url: window.location.origin + '/api/public',
 			btnId: 'public-api-btn',
 		})
 	);
@@ -115,7 +102,7 @@ export default async () => {
 	privateAPIButton.addEventListener('click', () =>
 		callApi({
 			auth0,
-			url: apiUrl + '/api/private',
+			url: window.location.origin + '/api/private',
 			btnId: 'private-api-btn',
 		})
 	);
@@ -123,7 +110,7 @@ export default async () => {
 	scopedAPIButton.addEventListener('click', () =>
 		callApi({
 			auth0,
-			url: apiUrl + '/api/scoped',
+			url: window.location.origin + '/api/scoped',
 			btnId: 'scoped-api-btn',
 		})
 	);

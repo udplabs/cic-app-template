@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import express from 'express';
+import {} from '@okta/jwt-verifier';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import morgan from 'morgan';
@@ -22,7 +23,6 @@ const __dirname = dirname(__filename);
 const {
 	VITE_AUTH_DOMAIN: domain,
 	VITE_AUTH_AUDIENCE: AUDIENCE = [],
-	VITE_SERVER_PORT: PORT = 3001,
 	VITE_AUTH_PERMISSIONS: PERMISSIONS = [],
 } = process.env;
 
@@ -119,4 +119,6 @@ app.use((err, req, res, next) => {
 	}
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+export const handler = app;
+
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
