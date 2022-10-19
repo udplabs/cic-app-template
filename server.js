@@ -10,6 +10,7 @@ import jwksRsa from 'jwks-rsa';
 import jwtAuthz from 'express-jwt-authz';
 import cors from 'cors';
 import { existsSync } from 'fs';
+import * as jose from 'node-jose';
 
 if (existsSync('.env.local')) {
 	dotenv.config({ path: `.env.local` });
@@ -55,8 +56,53 @@ const jwksRsaSecretOptions = {
 	jwksUri,
 };
 
+const expressJwtSecret = (options) => {
+	const jwksClient = jwksRsa(options);
+
+	const getSigningKeys = async () => {
+		const keys = await jwksClient.getKeys();
+
+		const keystore = await jose.JWK.asKeyStore({ keys });
+
+		return keystore.all({ use: 'sig' }).map((k) => ({
+			kid: k.kid,
+			alg: k.alg,
+			publicKey: k.toPEM(false),
+			rsaPublicKey: k.toPEM(false),
+			getPublicKey() {
+				return k.toPEM(false);
+			},
+		}));
+	};
+
+	const getSecret = async (req, token) => {
+		try {
+			const { kid } = token?.header || {};
+
+			const keys = await getSigningKeys();
+
+			const key = keys.find((k) => k.kid === kid);
+
+			return key.publicKey || key.rsaPublicKey;
+		} catch (error) {
+			console.log(error);
+
+			return new Promise((resolve, reject) => {
+				if (error) {
+					reject(error);
+				}
+
+				resolve();
+			});
+		}
+	};
+
+	return getSecret;
+};
+
 const checkJwt = jwt({
-	secret: jwksRsa.expressJwtSecret(jwksRsaSecretOptions),
+	// secret: jwksRsa.expressJwtSecret(jwksRsaSecretOptions),
+	secret: expressJwtSecret(jwksRsaSecretOptions),
 	audience,
 	issuer,
 	algorithms: ['RS256'],
