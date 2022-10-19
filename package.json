@@ -2,7 +2,8 @@
 	"name": "auth-rocks-app",
 	"version": "1.0.0",
 	"description": "Template vanilla JS application using Node Express.",
-	"main": "main.js",
+	"main": "server.js",
+	"module": "main.js",
 	"type": "module",
 	"scripts": {
 		"start": "concurrently \"npm run dev:server\" \"npm run dev:app\"",
@@ -26,7 +27,6 @@
 	},
 	"dependencies": {
 		"@auth0/auth0-spa-js": "^1.22.4",
-		"assert": "^2.0.0",
 		"cors": "^2.8.5",
 		"dotenv": "^16.0.3",
 		"express": "^4.18.2",
