@@ -75,8 +75,6 @@ export const router = {
 export default async () => {
 	window.onpopstate = onPopState;
 
-	// const config = await fetchConfig();
-
 	auth0 = new AuthClient();
 
 	if (!(await auth0?.isAuthenticated())) {

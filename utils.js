@@ -25,20 +25,6 @@ export const elementMapper = {
 	loadingTitle: 'loading-title',
 };
 
-export const fetchConfig = async () => {
-	const port = parseInt(window.location.port) + 1;
-
-	const resp = await fetch(
-		`http://${window.location.hostname}:${port}/config`
-	);
-
-	if (!resp.ok) {
-		throw new Error('Unable to fetch config!');
-	}
-
-	return await resp.json();
-};
-
 /**
  * Returns true if `element` is a hyperlink that can be considered a link to another SPA route
  * @param {*} element The element to check
