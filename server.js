@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import * as dotenv from 'dotenv';
 import express from 'express';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -8,6 +8,13 @@ import { expressjwt as jwt } from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 import jwtAuthz from 'express-jwt-authz';
 import cors from 'cors';
+import { existsSync } from 'fs';
+
+if (existsSync('.env.local')) {
+	dotenv.config({ path: `.env.local` });
+} else {
+	dotenv.config();
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,9 +32,9 @@ const permissions = Array.isArray(PERMISSIONS)
 
 const audience = Array.isArray(AUDIENCE) ? AUDIENCE : AUDIENCE.split(' ');
 
-console.log({ audience, permissions });
-
 const jwksUri = `https://${domain}/.well-known/jwks.json`;
+
+console.log({ audience, domain, permissions, jwksUri });
 
 const issuer =
 	domain.lastIndexOf('/') === domain.length - 1
@@ -36,7 +43,7 @@ const issuer =
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(express.static(join(__dirname, 'public')));
