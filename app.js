@@ -11,6 +11,15 @@ var auth0 = undefined;
 
 var apiUrl = `http://${window.location.hostname}:${PORT}`;
 
+// Adjust for Stackblitz
+if (window.location.origin.includes('webcontainer.io')) {
+	const regex = /(?<=--)\d{0,4}/;
+
+	const href = window.location.origin;
+
+	apiUrl = href.replace(regex, PORT);
+}
+
 /**
  * Calls the API endpoint with an authorization token
  */
