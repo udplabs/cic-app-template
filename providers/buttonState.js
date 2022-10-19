@@ -8,7 +8,7 @@ export const setButtonState = (btn, isLoading = true) => {
 	loadingText?.classList[isLoading ? 'remove' : 'add']('hidden');
 };
 
-export default new Proxy(setButtonState, {
+export const buttonState = new Proxy(setButtonState, {
 	apply: (target, _, argsList) => {
 		const { id, isLoading = true } = argsList[0] || {};
 

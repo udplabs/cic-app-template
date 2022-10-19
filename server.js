@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import { existsSync } from 'fs';
-import OktaJwtVerifier from './jwtVerifier';
+import JwtVerifier from './jwtVerifier';
 
 if (existsSync('.env.local')) {
 	dotenv.config({ path: `.env.local` });
@@ -59,7 +59,7 @@ const verifyJwt = (options) => {
 		...options,
 	};
 
-	const verifier = new OktaJwtVerifier(options);
+	const verifier = new JwtVerifier(options);
 
 	const verifyAccessToken = async (req, res, next) => {
 		let token;

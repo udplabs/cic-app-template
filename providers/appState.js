@@ -1,5 +1,5 @@
 import hljs from 'highlight.js';
-import { eachElement, elementMapper } from './utils';
+import { eachElement, elementMapper } from '../utils';
 
 // Global app state handling;
 const defaultLoadingTitle = 'Hang tight!';
@@ -12,7 +12,7 @@ export let appState = {
 	loadingMsg: defaultLoadingMsg,
 };
 
-export default new Proxy(appState, {
+export const appStateProvider = new Proxy(appState, {
 	set: (target, key, value) => {
 		target[key] = value;
 

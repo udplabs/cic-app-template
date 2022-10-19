@@ -1,4 +1,4 @@
-import { eachElement, elementMapper, parseJwt } from './utils';
+import { eachElement, elementMapper, parseJwt } from '../utils';
 
 export var authState = {
 	accessToken: undefined,
@@ -6,7 +6,7 @@ export var authState = {
 	user: undefined,
 };
 
-export default new Proxy(authState, {
+export const authStateProvider = new Proxy(authState, {
 	set: (target, key, value) => {
 		target[key] = value;
 

@@ -1,7 +1,9 @@
-import appStateProvider from './appState';
-import { authState } from './authState';
-import AuthClient from './authClient';
-import buttonState from './buttonState';
+import {
+	appStateProvider,
+	AuthClient,
+	authState,
+	buttonState,
+} from './providers';
 import { isRouteLink, showContent, showContentFromUrl } from './utils';
 
 const { VITE_SERVER_PORT: PORT = 3001 } = import.meta;
@@ -72,10 +74,6 @@ export default async () => {
 	window.onpopstate = onPopState;
 
 	auth0 = new AuthClient();
-
-	if (!(await auth0?.isAuthenticated())) {
-		await auth0.handleAuth(true);
-	}
 
 	// Add event listeners to buttons
 	const loginButton = document.querySelector('#qsLoginBtn');

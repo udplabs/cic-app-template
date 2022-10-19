@@ -1,7 +1,11 @@
 import { Auth0Client } from '@auth0/auth0-spa-js';
-import appStateProvider, { appState } from './appState';
-import authStateProvider, { authState } from './authState';
-import { assert, showContentFromUrl } from './utils';
+import {
+	appStateProvider,
+	appState,
+	authStateProvider,
+	authState,
+} from '../providers';
+import { assert, showContentFromUrl } from '../utils';
 
 const {
 	VITE_AUTH_DOMAIN: domain,
@@ -11,7 +15,7 @@ const {
 	VITE_AUTH_USE_REFRESH_TOKENS: useRefreshTokens = true,
 } = import.meta.env;
 
-export default class AuthClient extends Auth0Client {
+export class AuthClient extends Auth0Client {
 	constructor(config) {
 		const _config = {
 			domain,
