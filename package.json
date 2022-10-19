@@ -2,7 +2,7 @@
 	"name": "auth-rocks-app",
 	"version": "1.0.0",
 	"description": "Template vanilla JS application using Node Express.",
-	"main": "server.js",
+	"main": "main.js",
 	"type": "module",
 	"scripts": {
 		"start": "concurrently \"npm run dev:server\" \"npm run dev:app\"",
