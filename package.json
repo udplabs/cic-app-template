@@ -2,6 +2,9 @@
 	"name": "auth-rocks-app",
 	"version": "1.0.0",
 	"description": "Template vanilla JS application using Node Express.",
+	"repository": {
+		"url": "https://github.com/udplabs/auth-rocks-app-template"
+	},
 	"main": "server.js",
 	"module": "main.js",
 	"type": "module",
