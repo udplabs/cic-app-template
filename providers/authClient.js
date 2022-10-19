@@ -80,30 +80,39 @@ export class AuthClient extends Auth0Client {
 		);
 	}
 
-	async doAuth(authOptions) {
+	async doAuth(authOptions, force = false) {
 		try {
 			authStateProvider.accessToken = await this.getTokenSilently(
 				authOptions
 			);
+
+			if (!authState?.accessToken) {
+				console.log(
+					'Unable to obtain access token. Something went wrong.'
+				);
+				return alert(
+					'Something went wrong attempting to fetch an access token. Please try again.'
+				);
+			}
+
+			authStateProvider.user = await this.getUser();
+
+			return {
+				accessToken: authState?.accessToken,
+				user: authState?.user,
+			};
 		} catch (error) {
 			if (error.error === 'login_required') {
 				console.log(error.error);
-				authStateProvider.accessToken = await this.getTokenWithPopup({
-					ignoreCache: true,
-				});
+
+				if (force) {
+					authStateProvider.accessToken =
+						await this.getTokenWithPopup({
+							ignoreCache: true,
+						});
+				}
 			}
 		}
-
-		if (!authState?.accessToken) {
-			console.log('Unable to obtain access token. Something went wrong.');
-			return alert(
-				'Something went wrong attempting to fetch an access token. Please try again.'
-			);
-		}
-
-		authStateProvider.user = await this.getUser();
-
-		return { accessToken: authState?.accessToken, user: authState?.user };
 	}
 
 	async handleAuth(force = false) {
@@ -127,15 +136,9 @@ export class AuthClient extends Auth0Client {
 		// 2) Check if user is authenticated. This effectively makes a userinfo call
 		authStateProvider.isAuthenticated = await this.isAuthenticated();
 
-		if (!authState.isAuthenticated && !force) {
-			console.log('> User not authenticated');
-		}
-
-		if (force || authState.isAuthenticated) {
-			await this.doAuth(authOptions);
-		}
-
 		if (force) {
+			await this.doAuth(authOptions);
+
 			const title = document.querySelector('#content-title');
 
 			if (title) {
@@ -145,7 +148,18 @@ export class AuthClient extends Auth0Client {
 			return (window.location.hash = '#content-lead');
 		}
 
-		return console.log('> User is authenticated');
+		if (
+			!authState.isAuthenticated ||
+			(authState.isAuthenticated && !authState.accessToken)
+		) {
+			console.log('> User not authenticated');
+
+			await this.doAuth(authOptions);
+		}
+
+		if (authState.isAuthenticated) {
+			return console.log('> User is authenticated');
+		}
 	}
 
 	async handleLoginRedirect() {

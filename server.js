@@ -139,32 +139,32 @@ app.get(
 		})
 );
 
-app.use((err, req, res, next) => {
-	if (err) {
-		console.log(JSON.stringify(err, null, 2));
-	}
+// app.use((err, req, res, next) => {
+// 	if (err) {
+// 		console.log(JSON.stringify(err, null, 2));
+// 	}
 
-	if (err?.response) {
-		const { data, status } = err.response || {};
-		res.status(status).json(data);
-	} else if (err?.name === 'UnauthorizedError') {
-		res.status(401).json({
-			success: false,
-			message:
-				err?.inner?.message ||
-				'Invalid Access Token. You shall not pass!',
-		});
-	} else if (err?.statusCode >= 400) {
-		res.status(err.statusCode).json({
-			success: false,
-			message:
-				err?.message ||
-				'Insufficient authorization. You shall not pass!',
-		});
-	} else {
-		next(err, req, res);
-	}
-});
+// 	if (err?.response) {
+// 		const { data, status } = err.response || {};
+// 		res.status(status).json(data);
+// 	} else if (err?.name === 'UnauthorizedError') {
+// 		res.status(401).json({
+// 			success: false,
+// 			message:
+// 				err?.inner?.message ||
+// 				'Invalid Access Token. You shall not pass!',
+// 		});
+// 	} else if (err?.statusCode >= 400) {
+// 		res.status(err.statusCode).json({
+// 			success: false,
+// 			message:
+// 				err?.message ||
+// 				'Insufficient authorization. You shall not pass!',
+// 		});
+// 	} else {
+// 		next(err, req, res);
+// 	}
+// });
 
 export const handler = app;
 
