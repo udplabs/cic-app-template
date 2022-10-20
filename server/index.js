@@ -59,7 +59,7 @@ const verifyJwt = (options) => {
 
 	const verifier = new JwtVerifier(options);
 
-	const verifyAccessToken = async (req, res, next) => {
+	const verifyToken = async (req, res, next) => {
 		try {
 			if (
 				req?.method === 'OPTIONS' &&
@@ -87,7 +87,7 @@ const verifyJwt = (options) => {
 
 			const accessToken = match[1];
 
-			req.jwt = await verifier.verifyAccessToken(accessToken, {
+			req.jwt = await verifier.verifyToken(accessToken, {
 				audience,
 			});
 
@@ -104,7 +104,7 @@ const verifyJwt = (options) => {
 		}
 	};
 
-	return verifyAccessToken;
+	return verifyToken;
 };
 
 app.get('/api/public', (req, res) =>
