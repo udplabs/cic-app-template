@@ -87,10 +87,9 @@ const verifyJwt = (options) => {
 
 			const accessToken = match[1];
 
-			req.jwt = await verifier.verifyAccessToken(
-				accessToken,
-				'api://authrocks,https://atko-rocks-gentle-animal.demo-platform-staging.auth0app.com/userinfo'
-			);
+			req.jwt = await verifier.verifyAccessToken(accessToken, {
+				audience,
+			});
 
 			next();
 		} catch (error) {

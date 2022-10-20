@@ -7,7 +7,6 @@ export default class JwksClient extends Auth0JwksClient {
 	}
 
 	async retrieveSigningKeys(keys) {
-		console.log(keys);
 		if (!keys) {
 			throw new Error('keys must be provided to retrieve signing keys');
 		}
@@ -33,7 +32,6 @@ export default class JwksClient extends Auth0JwksClient {
 	async getSigningKeys() {
 		const keys = await this.getKeys();
 
-		console.log(keys);
 		if (!keys || !keys.length) {
 			throw new Error('The JWKS endpoint did not contain any keys');
 		}

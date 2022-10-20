@@ -1,4 +1,4 @@
-import * as nJwt from 'njwt';
+import * as JWT from 'jsonwebtoken';
 import JwksClient from './jwksClient';
 
 class ConfigurationValidationError extends Error {}
@@ -146,71 +146,12 @@ function verifyAssertedClaims(verifier, claims) {
 		throw new Error(assertedClaimsVerifier.errors.join(', '));
 	}
 }
-
-function intersect(a, b) {
-	return a.filter(Set.prototype.has, new Set(b)) || [];
-}
-
-function verifyAudience(expected, aud) {
-	if (!expected) {
-		throw new Error('expected audience is required');
-	}
-
-	aud = Array.isArray(aud) ? aud : aud.split(',');
-	expected = Array.isArray(expected)
-		? expected
-		: expected.includes(', ')
-		? expected.split(', ')
-		: expected.split(',');
-
-	if (intersect(expected, aud).length !== expected.length) {
-		throw new Error(
-			`audience claim ${aud} does not match one of the expected audiences: ${expected}}`
-		);
-	}
-}
-
-function verifyClientId(expected, aud) {
-	if (!expected) {
-		throw new Error('expected client id is required');
-	}
-
-	assertClientId(expected);
-
-	if (aud !== expected) {
-		throw new Error(
-			`audience claim ${aud} does not match expected client id: ${expected}`
-		);
-	}
-}
-
-function verifyIssuer(expected, issuer) {
-	if (issuer !== expected) {
-		throw new Error(
-			`issuer ${issuer} does not match expected issuer: ${expected}`
-		);
-	}
-}
-
-function verifyNonce(expected, nonce) {
-	if (nonce && !expected) {
-		throw new Error('expected nonce is required');
-	}
-	if (!nonce && expected) {
-		throw new Error(`nonce claim is missing but expected: ${expected}`);
-	}
-	if (nonce && expected && nonce !== expected) {
-		throw new Error(
-			`nonce claim ${nonce} does not match expected nonce: ${expected}`
-		);
-	}
-}
-
 function getJwksUri(options) {
 	return options.jwksUri ? options.jwksUri : options.issuer + '/v1/keys';
 }
 
 export default class JwtVerifier {
+	algorithms = ['RS256'];
 	constructor(options = {}) {
 		// Assert configuration options exist and are well-formed (not necessarily correct!)
 		assertIssuer(options?.issuer, options?.testing);
@@ -232,79 +173,55 @@ export default class JwtVerifier {
 			rateLimit: true,
 			requestAgentOptions: options.requestAgentOptions,
 		});
-
-		this.verifier = nJwt
-			.createVerifier()
-			.setSigningAlgorithm('RS256')
-			.withKeyResolver((kid, cb) => {
-				if (kid) {
-					this.jwksClient.getSigningKey(kid, (err, key) => {
-						cb(err, key && (key.publicKey || key.rsaPublicKey));
-					});
-				} else {
-					cb('No KID specified', null);
-				}
-			});
 	}
 
-	async verifyAsPromise(tokenString) {
-		return new Promise((resolve, reject) => {
-			// Convert to a promise
-			this.verifier.verify(tokenString, (err, jwt) => {
-				if (err) {
-					return reject(err);
-				}
+	async verifyToken(
+		tokenString,
+		{
+			issuer = this?.issuer,
+			algorithms = this?.algorithms,
+			audience = this?.audience,
+			sub = this?.sub,
+			claimsToAssert = this?.claimsToAssert,
+			clientId = this?.clientId,
+			nonce = this?.nonce,
+			...options
+		}
+	) {
+		// jsonwebtoken verifies:
+		// - signature
+		// - expiration
+		// - audience (if provided)
+		// - issuer (if provided)
+		// - clientId (if provided)
+		// - nonce (if provided)
+		// We require RS256 by default.
+		// Remaining to verify:
+		// - any custom claims passed in
 
-				const jwtBodyProxy = new Proxy(jwt.body, {});
-				Object.defineProperty(jwt, 'claims', {
-					enumerable: true,
-					writable: false,
-					value: jwtBodyProxy,
-				});
-
-				njwtTokenBodyMethods.forEach((methodName) => {
-					let method = jwt[methodName];
-					if (method) {
-						jwt[methodName] = method.bind({ body: jwtBodyProxy });
-					}
-				});
-				delete jwt.body;
-				resolve(jwt);
-			});
+		// decode the JWT to get the kid
+		const { header, payload } = JWT.decode(tokenString, {
+			complete: true,
 		});
-	}
 
-	async verifyAccessToken(accessTokenString, expectedAudience) {
-		// njwt verifies expiration and signature.
-		// We require RS256 in the base verifier.
-		// Remaining to verify:
-		// - audience claim
-		// - issuer claim
-		// - any custom claims passed in
+		options = {
+			issuer,
+			algorithms,
+			audience,
+			sub,
+			clientId,
+			nonce,
+		};
 
-		const jwt = await this.verifyAsPromise(accessTokenString);
-		console.log({ jwt });
-		verifyAudience(expectedAudience, jwt.claims.aud);
-		verifyIssuer(this.issuer, jwt.claims.iss);
-		verifyAssertedClaims(this, jwt.claims);
+		// get the signing key
+		const { publicKey, rsaPublicKey } = await this.jwksClient.getSigningKey(
+			header?.kid
+		);
 
-		return jwt;
-	}
+		// do the verification
+		const jwt = JWT.verify(tokenString, publicKey || rsaPublicKey, options);
 
-	async verifyIdToken(idTokenString, expectedClientId, expectedNonce) {
-		// njwt verifies expiration and signature.
-		// We require RS256 in the base verifier.
-		// Remaining to verify:
-		// - audience claim (must match client id)
-		// - issuer claim
-		// - nonce claim (if present)
-		// - any custom claims passed in
-
-		const jwt = await this.verifyAsPromise(idTokenString);
-		verifyClientId(expectedClientId, jwt.claims.aud);
-		verifyIssuer(this.issuer, jwt.claims.iss);
-		verifyNonce(expectedNonce, jwt.claims.nonce);
-		verifyAssertedClaims(this, jwt.claims);
+		verifyAssertedClaims(this, jwt);
 
 		return jwt;
 	}
