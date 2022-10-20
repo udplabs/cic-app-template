@@ -1,4 +1,4 @@
-import { router } from './app.js';
+import { router } from './index.js';
 
 export const assert = (condition, message = 'Assertion failed!') => {
 	if (!condition) {

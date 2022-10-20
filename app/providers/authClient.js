@@ -1,10 +1,5 @@
 import { Auth0Client } from '@auth0/auth0-spa-js';
-import {
-	appStateProvider,
-	appState,
-	authStateProvider,
-	authState,
-} from '../providers';
+import { appStateProvider, appState, authStateProvider, authState } from '.';
 import { assert, showContentFromUrl } from '../utils';
 
 const {

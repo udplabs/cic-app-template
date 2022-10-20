@@ -1,4 +1,4 @@
-import initApp from './app.js';
+import initApp from './app';
 
 const { VITE_APP_PORT: PORT = 3000, PROD } = import.meta;
 
