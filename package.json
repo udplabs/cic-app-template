@@ -38,5 +38,9 @@
 		"jwks-rsa": "^2.1.5",
 		"morgan": "^1.10.0",
 		"node-jose": "^2.1.1"
+	},
+	"stackblitz": {
+		"startCommand": "npm run dev",
+		"compileTrigger": "save"
 	}
 }

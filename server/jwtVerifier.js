@@ -1,5 +1,6 @@
 import * as JWT from 'jsonwebtoken';
-import JwksClient from './jwksClient';
+import jwksClient from 'jwks-rsa';
+// import JwksClient from './jwksClient';
 
 class ConfigurationValidationError extends Error {}
 
@@ -164,7 +165,7 @@ export default class JwtVerifier {
 
 		this.jwksUri = getJwksUri(options);
 
-		this.jwksClient = new JwksClient({
+		this.jwksClient = jwksClient({
 			jwksUri: this.jwksUri,
 			cache: true,
 			cacheMaxAge: options.cacheMaxAge || 60 * 60 * 1000,
