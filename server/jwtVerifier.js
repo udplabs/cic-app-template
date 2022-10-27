@@ -1,22 +1,13 @@
 import * as JWT from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
-// import JwksClient from './jwksClient';
+import axios from 'axios';
+import ApiError from './apiError';
 
 class ConfigurationValidationError extends Error {}
 
+const { JWT_VERIFY_URL: verifyUrl } = process.env;
+
 const findDomainURL = 'https://bit.ly/finding-okta-domain';
 const findAppCredentialsURL = 'https://bit.ly/finding-okta-app-credentials';
-const njwtTokenBodyMethods = [
-	'setClaim',
-	'setJti',
-	'setSubject',
-	'setIssuer',
-	'setIssuedAt',
-	'setExpiration',
-	'setNotBefore',
-	'isExpired',
-	'isNotBefore',
-];
 
 const assertIssuer = (issuer, testing = {}) => {
 	const isHttps = new RegExp('^https://');
@@ -35,22 +26,16 @@ const assertIssuer = (issuer, testing = {}) => {
 	}
 
 	if (!issuer) {
-		throw new ConfigurationValidationError(
-			'Your Okta URL is missing. ' + copyMessage
-		);
+		throw new ConfigurationValidationError('Your Okta URL is missing. ' + copyMessage);
 	} else if (!testing.disableHttpsCheck && !issuer.match(isHttps)) {
 		throw new ConfigurationValidationError(
-			'Your Okta URL must start with https. ' +
-				`Current value: ${issuer}. ${copyMessage}`
+			'Your Okta URL must start with https. ' + `Current value: ${issuer}. ${copyMessage}`
 		);
 	} else if (issuer.match(/{yourOktaDomain}/)) {
-		throw new ConfigurationValidationError(
-			'Replace {yourOktaDomain} with your Okta domain. ' + copyMessage
-		);
+		throw new ConfigurationValidationError('Replace {yourOktaDomain} with your Okta domain. ' + copyMessage);
 	} else if (issuer.match(hasDomainAdmin)) {
 		throw new ConfigurationValidationError(
-			'Your Okta domain should not contain -admin. ' +
-				`Current value: ${issuer}. ${copyMessage}`
+			'Your Okta domain should not contain -admin. ' + `Current value: ${issuer}. ${copyMessage}`
 		);
 	}
 };
@@ -62,94 +47,13 @@ const assertClientId = (clientId) => {
 		`Follow these instructions to find it: ${findAppCredentialsURL}`;
 
 	if (!clientId) {
-		throw new ConfigurationValidationError(
-			'Your client ID is missing. ' + copyCredentialsMessage
-		);
+		throw new ConfigurationValidationError('Your client ID is missing. ' + copyCredentialsMessage);
 	} else if (clientId.match(/{clientId}/)) {
 		throw new ConfigurationValidationError(
-			'Replace {clientId} with the client ID of your Application. ' +
-				copyCredentialsMessage
+			'Replace {clientId} with the client ID of your Application. ' + copyCredentialsMessage
 		);
 	}
 };
-
-class AssertedClaimsVerifier {
-	constructor() {
-		this.errors = [];
-	}
-
-	extractOperator(claim) {
-		const idx = claim.indexOf('.');
-		if (idx >= 0) {
-			return claim.substring(idx + 1);
-		}
-		return undefined;
-	}
-
-	extractClaim(claim) {
-		const idx = claim.indexOf('.');
-		if (idx >= 0) {
-			return claim.substring(0, idx);
-		}
-		return claim;
-	}
-
-	isValidOperator(operator) {
-		// may support more operators in the future
-		return !operator || operator === 'includes';
-	}
-
-	checkAssertions(op, claim, expectedValue, actualValue) {
-		if (!op && actualValue !== expectedValue) {
-			this.errors.push(
-				`claim '${claim}' value '${actualValue}' does not match expected value '${expectedValue}'`
-			);
-		} else if (op === 'includes' && Array.isArray(expectedValue)) {
-			expectedValue.forEach((value) => {
-				if (!actualValue || !actualValue.includes(value)) {
-					this.errors.push(
-						`claim '${claim}' value '${actualValue}' does not include expected value '${value}'`
-					);
-				}
-			});
-		} else if (
-			op === 'includes' &&
-			(!actualValue || !actualValue.includes(expectedValue))
-		) {
-			this.errors.push(
-				`claim '${claim}' value '${actualValue}' does not include expected value '${expectedValue}'`
-			);
-		}
-	}
-}
-
-function verifyAssertedClaims(verifier, claims) {
-	const assertedClaimsVerifier = new AssertedClaimsVerifier();
-	for (const [claimName, expectedValue] of Object.entries(
-		verifier.claimsToAssert
-	)) {
-		const operator = assertedClaimsVerifier.extractOperator(claimName);
-		if (!assertedClaimsVerifier.isValidOperator(operator)) {
-			throw new Error(
-				`operator: '${operator}' invalid. Supported operators: 'includes'.`
-			);
-		}
-		const claim = assertedClaimsVerifier.extractClaim(claimName);
-		const actualValue = claims[claim];
-		assertedClaimsVerifier.checkAssertions(
-			operator,
-			claim,
-			expectedValue,
-			actualValue
-		);
-	}
-	if (assertedClaimsVerifier.errors.length) {
-		throw new Error(assertedClaimsVerifier.errors.join(', '));
-	}
-}
-function getJwksUri(options) {
-	return options.jwksUri ? options.jwksUri : options.issuer + '/v1/keys';
-}
 
 export default class JwtVerifier {
 	algorithms = ['RS256'];
@@ -160,20 +64,8 @@ export default class JwtVerifier {
 			assertClientId(options.clientId);
 		}
 
-		this.claimsToAssert = options?.assertClaims || {};
+		this.claimsToAssert = options?.claimsToAssert || {};
 		this.issuer = options?.issuer;
-
-		this.jwksUri = getJwksUri(options);
-
-		this.jwksClient = jwksClient({
-			jwksUri: this.jwksUri,
-			cache: true,
-			cacheMaxAge: options.cacheMaxAge || 60 * 60 * 1000,
-			cacheMaxEntries: 3,
-			jwksRequestsPerMinute: options.jwksRequestsPerMinute || 10,
-			rateLimit: true,
-			requestAgentOptions: options.requestAgentOptions,
-		});
 	}
 
 	async verifyToken(
@@ -200,30 +92,50 @@ export default class JwtVerifier {
 		// Remaining to verify:
 		// - any custom claims passed in
 
-		// decode the JWT to get the kid
-		const { header, payload } = JWT.decode(tokenString, {
-			complete: true,
-		});
-
 		options = {
 			issuer,
 			algorithms,
 			audience,
+			claimsToAssert,
 			sub,
 			clientId,
 			nonce,
 		};
 
-		// get the signing key
-		const { publicKey, rsaPublicKey } = await this.jwksClient.getSigningKey(
-			header?.kid
-		);
+		const reqOptions = {
+			url: verifyUrl,
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${tokenString}`,
+			},
+			data: options,
+		};
 
-		// do the verification
-		const jwt = JWT.verify(tokenString, publicKey || rsaPublicKey, options);
+		const jwt = JWT.decode(tokenString);
 
-		verifyAssertedClaims(this, jwt);
+		try {
+			// do the verification
+			await axios(reqOptions);
 
-		return jwt;
+			return jwt;
+		} catch (error) {
+			if (error?.response) {
+				// The request was made and the server responded with a status code
+				// that falls out of the range of 2xx
+				throw new ApiError({ ...error.response?.data, statusCode: error.response?.status, message: 'Unauthorized' });
+			} else if (error?.request) {
+				// The request was made but no response was received
+				// `error.request` is an instance of `XMLHttpRequest` in the
+				// browser and an instance of `http:ClientRequest` in node.js
+				console.log({ request: error.request });
+				throw new Error('No response from verification request');
+			} else {
+				if (error instanceof ApiError) {
+					throw error;
+				}
+
+				throw new Error(error);
+			}
+		}
 	}
 }
