@@ -1,4 +1,5 @@
 {
 	"dotenv.enableAutocloaking": false,
-	"workbench.startupEditor": "readme"
+	"workbench.startupEditor": "readme",
+	"security.workspace.trust.enabled": false
 }
