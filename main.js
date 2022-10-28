@@ -1,6 +1,6 @@
 import initApp from './app';
 
-const { VITE_APP_PORT: PORT = 3000, PROD } = import.meta;
+const { VITE_APP_PORT: PORT = 3000, PROD } = import.meta.env;
 
 if (!PROD) {
 	const viteScript = document.createElement('script');

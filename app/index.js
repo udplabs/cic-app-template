@@ -1,15 +1,11 @@
-import {
-	appStateProvider,
-	AuthClient,
-	authState,
-	buttonState,
-} from './providers';
+import { appStateProvider, AuthClient, authState, buttonState } from './providers';
 import { isRouteLink, showContent, showContentFromUrl } from './utils';
 
-const { VITE_SERVER_PORT: PORT = 3001 } = import.meta;
+const { BASE_URL } = import.meta.env;
 
 // Initialize global auth0
 var auth0 = undefined;
+var apiUrl = '/api';
 
 /**
  * Calls the API endpoint with an authorization token
@@ -22,9 +18,7 @@ export const callApi = async ({ auth0, url, btnId }) => {
 
 		history.pushState('', null, window.location.pathname);
 
-		const accessToken =
-			authState?.accessToken ||
-			(await auth0.getTokenSilently({ ignoreCache: true }));
+		const accessToken = authState?.accessToken || (await auth0.getTokenSilently({ ignoreCache: true }));
 
 		const fetchOptions = {
 			method: 'GET',
@@ -46,9 +40,7 @@ export const callApi = async ({ auth0, url, btnId }) => {
 		return (appStateProvider.apiData = result);
 	} catch (error) {
 		console.error(error);
-		alert(
-			'Unable to access API or API is not configured correctly. See console for details.'
-		);
+		alert('Unable to access API or API is not configured correctly. See console for details.');
 	} finally {
 		if (btnId) {
 			buttonState({ id: btnId, isLoading: false });
@@ -65,8 +57,7 @@ export const onPopState = ({ state }) => {
 // URL mapping, from hash to a function that responds to that URL action
 export const router = {
 	'/': () => showContent('content-home'),
-	'/profile': () =>
-		auth0?.requireAuth(() => showContent('content-profile'), '/profile'),
+	'/profile': () => auth0?.requireAuth(() => showContent('content-profile'), '/profile'),
 	'/login': () => login(),
 };
 
@@ -74,6 +65,10 @@ export default async () => {
 	window.onpopstate = onPopState;
 
 	auth0 = new AuthClient();
+
+	if (BASE_URL) {
+		apiUrl = BASE_URL + apiUrl;
+	}
 
 	// Add event listeners to buttons
 	const loginButton = document.querySelector('#qsLoginBtn');
@@ -92,7 +87,7 @@ export default async () => {
 	publicAPIButton.addEventListener('click', () =>
 		callApi({
 			auth0,
-			url: window.location.origin + '/api/public',
+			url: window.location.origin + apiUrl + '/public',
 			btnId: 'public-api-btn',
 		})
 	);
@@ -100,7 +95,7 @@ export default async () => {
 	privateAPIButton.addEventListener('click', () =>
 		callApi({
 			auth0,
-			url: window.location.origin + '/api/private',
+			url: window.location.origin + apiUrl + '/private',
 			btnId: 'private-api-btn',
 		})
 	);
@@ -108,7 +103,7 @@ export default async () => {
 	scopedAPIButton.addEventListener('click', () =>
 		callApi({
 			auth0,
-			url: window.location.origin + '/api/scoped',
+			url: window.location.origin + apiUrl + '/scoped',
 			btnId: 'scoped-api-btn',
 		})
 	);
