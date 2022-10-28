@@ -5,13 +5,13 @@ const { VITE_APP_PORT: PORT = 3000, PROD } = import.meta;
 if (!PROD) {
 	const viteScript = document.createElement('script');
 	viteScript.setAttribute('type', 'module');
-	viteScript.setAttribute('src', `http://localhost:${PORT}/@vite/client`);
+	viteScript.setAttribute('src', `${window.location.href}@vite/client`);
 
 	document.body.appendChild(viteScript);
 
 	const mainScript = document.createElement('script');
 	mainScript.setAttribute('type', 'module');
-	mainScript.setAttribute('src', `http://localhost:${PORT}/main.js`);
+	mainScript.setAttribute('src', `${window.location.href}/main.js`);
 
 	document.body.appendChild(mainScript);
 }

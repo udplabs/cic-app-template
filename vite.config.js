@@ -4,7 +4,10 @@ import mixPlugin from 'vite-plugin-mix';
 const mix = mixPlugin.default;
 
 export default defineConfig(({ command, mode }) => {
-	const { VITE_APP_PORT: port, APP_ENV } = loadEnv(mode, process.cwd(), '');
+	const env = loadEnv(mode, process.cwd(), '');
+	const { VITE_APP_PORT: port, APP_ENV, VSCODE_PROXY_URI: PROXY } = env;
+
+	const url = PROXY.replace(/{{port}}/, port);
 
 	return {
 		plugins: [
@@ -15,6 +18,7 @@ export default defineConfig(({ command, mode }) => {
 		define: {
 			__APP_ENV__: APP_ENV,
 		},
+		base: `/proxy/${port}/`,
 		server: {
 			port,
 		},
