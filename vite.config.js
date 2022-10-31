@@ -18,7 +18,6 @@ export default defineConfig(({ command, mode }) => {
 		define: {
 			__APP_ENV__: APP_ENV,
 		},
-		base: `/proxy/${port}/`,
 		server: {
 			port,
 		},
