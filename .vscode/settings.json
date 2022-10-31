@@ -3,8 +3,12 @@
 	"editor.formatOnSave": true,
 	"editor.formatOnPaste": true,
 	"files.autoSave": "off",
-	"terminal.integrated.cwd": "/root/.local/share/code-server/app",
+	"security.workspace.trust.banner": "never",
+	"security.workspace.trust.enabled": false,
+	"security.workspace.trust.startupPrompt": "never",
+	"security.workspace.trust.untrustedFiles": "open",
 	"terminal.integrated.defaultProfile.linux": "bash",
+	"terminal.integrated.cwd": "/root/.local/share/code-server/app",
 	"workbench.colorTheme": "Default Dark+",
 	"workbench.editor.highlightModifiedTabs": true,
 	"workbench.startupEditor": "readme"

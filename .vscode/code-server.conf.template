@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${SANDBOX_URL};
+
+    location / {
+    proxy_pass http://localhost:3000/;
+    proxy_set_header Host ${DOLLAR}host;
+    proxy_set_header Upgrade ${DOLLAR}http_upgrade;
+    proxy_set_header Connection upgrade;
+    proxy_set_header Accept-Encoding gzip;
+    }
+}
