@@ -6,15 +6,19 @@ import { fileURLToPath } from 'url';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import JwtVerifier from './jwtVerifier.js';
 import ApiError from './apiError.js';
 
-if (existsSync('.env.local')) {
-	dotenv.config({ path: `.env.local` });
-} else {
-	dotenv.config();
-}
+const loadEnv = (options) => {
+	if (existsSync('.env.local')) {
+		dotenv.config({ path: `.env.local`, ...options });
+	}
+
+	dotenv.config(options);
+};
+
+loadEnv();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -22,7 +26,7 @@ const __dirname = dirname(__filename);
 const {
 	VITE_AUTH_DOMAIN: domain,
 	VITE_AUTH_CLIENT_ID: clientId,
-	VITE_AUTH_AUDIENCE: AUDIENCE = [],
+	VITE_SERVER_AUDIENCE: AUDIENCE,
 	VITE_AUTH_PERMISSIONS: PERMISSIONS = [],
 	VITE_APP_PORT: APP_PORT,
 } = process.env;
@@ -31,9 +35,9 @@ const permissions = Array.isArray(PERMISSIONS) ? PERMISSIONS : PERMISSIONS.split
 
 const audience = Array.isArray(AUDIENCE)
 	? AUDIENCE
-	: AUDIENCE.includes(', ')
-	? AUDIENCE.split(', ')
-	: AUDIENCE.split(',');
+	: AUDIENCE?.includes(', ')
+	? AUDIENCE?.split(', ')
+	: AUDIENCE?.split(',');
 
 const issuer = domain.lastIndexOf('/') === domain.length - 1 ? 'https://' + domain : 'https://' + domain + '/';
 
@@ -75,6 +79,8 @@ const verifyJwt = (options) => {
 			}
 
 			const accessToken = match[1];
+
+			console.log(audience);
 
 			req.jwt = await verifier.verifyToken(accessToken, {
 				audience,
@@ -127,6 +133,14 @@ app.get('/api/scoped', verifyJwt({ claimsToAssert: { 'permissions.includes': per
 			'This is the scoped API. Only a valid access token with both the correct audience AND valid permissions has access. You did it!',
 	})
 );
+
+app.get('/audience', async (req, res) => {
+	const _env = readFileSync('.env');
+
+	const { VITE_AUTH_AUDIENCE: audience } = dotenv.parse(_env) || {};
+
+	res.json({ audience });
+});
 
 // app.listen(PORT, () => {
 // 	console.log(`🚀 Server listening on port ${PORT}`);

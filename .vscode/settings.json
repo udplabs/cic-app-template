@@ -11,5 +11,6 @@
 	"terminal.integrated.cwd": "/root/.local/share/code-server/app",
 	"workbench.colorTheme": "Default Dark+",
 	"workbench.editor.highlightModifiedTabs": true,
-	"workbench.startupEditor": "readme"
+	"workbench.startupEditor": "readme",
+	"dotenv.enableAutocloaking": false
 }

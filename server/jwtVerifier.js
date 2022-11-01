@@ -102,6 +102,8 @@ export default class JwtVerifier {
 			nonce,
 		};
 
+		console.log(options);
+
 		const reqOptions = {
 			url: verifyUrl,
 			method: 'POST',

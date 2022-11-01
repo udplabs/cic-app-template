@@ -7,7 +7,7 @@ const {
 	VITE_AUTH_CLIENT_ID: client_id,
 	VITE_AUTH_AUDIENCE: audience,
 	VITE_AUTH_CACHE_LOCATION: cacheLocation = 'localstorage',
-	VITE_AUTH_USE_REFRESH_TOKENS: useRefreshTokens = true,
+	VITE_AUTH_USE_REFRESH_TOKENS: useRefreshTokens = false,
 } = import.meta.env;
 
 export class AuthClient extends Auth0Client {
@@ -21,16 +21,12 @@ export class AuthClient extends Auth0Client {
 			...config,
 		};
 
-		assert(
-			_config?.domain,
-			'A domain must be provided in the `config.json` file!'
-		);
-		assert(
-			_config?.client_id,
-			'A clientId must be provided in the `config.json` file!'
-		);
+		assert(_config?.domain, 'A domain must be provided in the `config.json` file!');
+		assert(_config?.client_id, 'A clientId must be provided in the `config.json` file!');
 
 		super(_config);
+
+		this.config = _config;
 	}
 
 	async login(targetUrl) {
@@ -70,24 +66,22 @@ export class AuthClient extends Auth0Client {
 			appStateProvider.isLoading = true;
 		}
 
-		return this.handleAuth(true).then(
-			() => (appStateProvider.isLoading = false)
-		);
+		const resp = await fetch('/audience');
+
+		const { audience } = (await resp.json()) || {};
+
+		this.config.audience = audience;
+
+		return this.handleAuth(true).then(() => (appStateProvider.isLoading = false));
 	}
 
 	async doAuth(authOptions, force = false) {
 		try {
-			authStateProvider.accessToken = await this.getTokenSilently(
-				authOptions
-			);
+			authStateProvider.accessToken = await this.getTokenSilently(authOptions);
 
 			if (!authState?.accessToken) {
-				console.log(
-					'Unable to obtain access token. Something went wrong.'
-				);
-				return alert(
-					'Something went wrong attempting to fetch an access token. Please try again.'
-				);
+				console.log('Unable to obtain access token. Something went wrong.');
+				return alert('Something went wrong attempting to fetch an access token. Please try again.');
 			}
 
 			authStateProvider.user = await this.getUser();
@@ -101,19 +95,16 @@ export class AuthClient extends Auth0Client {
 				console.log(error.error);
 
 				if (force) {
-					authStateProvider.accessToken =
-						await this.getTokenWithPopup({
-							ignoreCache: true,
-						});
+					authStateProvider.accessToken = await this.getTokenWithPopup({
+						ignoreCache: true,
+					});
 				}
 			}
 		}
 	}
 
 	async handleAuth(force = false) {
-		appStateProvider.loadingTitle = force
-			? 'Refreshing tokens.'
-			: 'Hang tight!';
+		appStateProvider.loadingTitle = force ? 'Refreshing tokens.' : 'Hang tight!';
 		appStateProvider.loadingMsg = 'Work faster monkeys!';
 
 		if (!appState.isLoading) {
@@ -122,8 +113,12 @@ export class AuthClient extends Auth0Client {
 
 		const authOptions = {
 			ignoreCache: force,
+			cacheMode: force ? 'off' : 'on',
 			useRefreshTokensFallback: !force,
+			audience: this.config?.audience || undefined,
 		};
+
+		console.log({ authOptions });
 
 		// 1) check if URL contains redirect params & handle if it does
 		await this.handleLoginRedirect();
@@ -143,10 +138,7 @@ export class AuthClient extends Auth0Client {
 			return (window.location.hash = '#content-lead');
 		}
 
-		if (
-			!authState.isAuthenticated ||
-			(authState.isAuthenticated && !authState.accessToken)
-		) {
+		if (!authState.isAuthenticated || (authState.isAuthenticated && !authState.accessToken)) {
 			console.log('> User not authenticated');
 
 			await this.doAuth(authOptions);
@@ -160,8 +152,7 @@ export class AuthClient extends Auth0Client {
 	async handleLoginRedirect() {
 		const query = new URLSearchParams(window.location.href);
 
-		const shouldParseResult =
-			query.has('code') || query.has('state') || query.has('error');
+		const shouldParseResult = query.has('code') || query.has('state') || query.has('error');
 
 		if (shouldParseResult) {
 			console.log('> Parsing redirect');
