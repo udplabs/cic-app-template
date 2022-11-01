@@ -11,7 +11,7 @@ if (!PROD) {
 
 	const mainScript = document.createElement('script');
 	mainScript.setAttribute('type', 'module');
-	mainScript.setAttribute('src', `${window.location.href}/main.js`);
+	mainScript.setAttribute('src', `${window.location.href}main.js`);
 
 	document.body.appendChild(mainScript);
 }
