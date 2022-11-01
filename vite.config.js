@@ -7,8 +7,6 @@ export default defineConfig(({ command, mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
 	const { VITE_APP_PORT: port, APP_ENV, VSCODE_PROXY_URI: PROXY } = env;
 
-	const url = PROXY.replace(/{{port}}/, port);
-
 	return {
 		plugins: [
 			mix({
