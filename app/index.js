@@ -18,7 +18,7 @@ export const callApi = async ({ auth0, url, btnId }) => {
 
 		history.pushState('', null, window.location.pathname);
 
-		const accessToken = authState?.accessToken || (await auth0.getTokenSilently({ ignoreCache: true }));
+		const accessToken = authState?.accessToken || (await auth0.getTokenSilently({ cacheOnly: 'off' }));
 
 		const fetchOptions = {
 			method: 'GET',
@@ -66,8 +66,8 @@ export default async () => {
 
 	auth0 = new AuthClient();
 
-	if (BASE_URL) {
-		apiUrl = BASE_URL + apiUrl;
+	if (BASE_URL && !BASE_URL.startsWith('/')) {
+		apiUrl = new URL(apiUrl, BASE_URL).toString();
 	}
 
 	// Add event listeners to buttons
