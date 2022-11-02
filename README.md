@@ -32,24 +32,28 @@ It is part of the Auth Rocks developer workshop presented by [Okta](https://okta
 
 This project is licensed under the MIT license. See the [LICENSE](LICENSE.txt) file for more info.
 
+### TODO
+
+- [ ] `npm run build` does not currently work due to an issue with ViteJS and rollup. Need to investigate further! @eatplaysleep
+
 ### Changelog
 
 #### 1.1 - 2022-08-30
 
--   Authorization API call scope check added
+- Authorization API call scope check added
 
 #### 1.0 - 2022-08-25
 
--   Authentication on refresh fixed
--   UI cleaned up to properly display tokens and API responses
+- Authentication on refresh fixed
+- UI cleaned up to properly display tokens and API responses
 
 #### 0.9 - 2022-08-24
 
--   API calls added
--   Audience added to access token
--   CORS added
--   Private API call fixed
+- API calls added
+- Audience added to access token
+- CORS added
+- Private API call fixed
 
 #### 0.8 - 2022-08-23
 
--   Authentication to tenant
+- Authentication to tenant

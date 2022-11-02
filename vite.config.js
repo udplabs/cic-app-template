@@ -4,8 +4,8 @@ import mixPlugin from 'vite-plugin-mix';
 const mix = mixPlugin.default;
 
 export default defineConfig(({ command, mode }) => {
-	const env = loadEnv(mode, process.cwd(), '');
-	const { VITE_APP_PORT: port, APP_ENV, VSCODE_PROXY_URI: PROXY } = env;
+	Object.assign(process.env, loadEnv(mode, process.cwd(), ''));
+	const { VITE_APP_PORT: port, APP_ENV } = process?.env;
 
 	return {
 		plugins: [

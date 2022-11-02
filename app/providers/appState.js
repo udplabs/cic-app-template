@@ -1,6 +1,8 @@
 import hljs from 'highlight.js';
 import { eachElement, elementMapper } from '../utils';
 
+hljs.configure({ ignoreUnescapedHTML: true });
+
 // Global app state handling;
 const defaultLoadingTitle = 'Hang tight!';
 const defaultLoadingMsg = 'The monkeys are working.';
@@ -18,16 +20,13 @@ export const appStateProvider = new Proxy(appState, {
 
 		switch (key) {
 			case 'apiData':
-				const responseElement =
-					document.getElementById('api-call-result');
+				const responseElement = document.getElementById('api-call-result');
 
 				if (value) {
 					// responseElement.innerText = value;
 					responseElement.innerHTML = JSON.stringify(value, null, 2);
 
-					eachElement('.result-block', (element) =>
-						element.classList.add('show')
-					);
+					eachElement('.result-block', (element) => element.classList.add('show'));
 
 					window.location.hash = '#anchor-results';
 				} else {

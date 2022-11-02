@@ -1,21 +1,24 @@
 import * as JWT from 'jsonwebtoken';
 import axios from 'axios';
+import { ok, doesNotMatch, match as doesMatch } from 'assert';
 import ApiError from './apiError';
+import { loadEnv } from './index';
 
 class ConfigurationValidationError extends Error {}
 
-const { JWT_VERIFY_URL: verifyUrl } = process.env;
-
-const findDomainURL = 'https://bit.ly/finding-okta-domain';
+const findOktaDomainURL = 'https://bit.ly/finding-okta-domain';
+const findAuth0Issuer = 'https://tinyurl.com/37th9n9h';
 const findAppCredentialsURL = 'https://bit.ly/finding-okta-app-credentials';
 
 const assertIssuer = (issuer, testing = {}) => {
 	const isHttps = new RegExp('^https://');
-	const hasDomainAdmin = /-admin.(okta|oktapreview|okta-emea).com/;
 	const copyMessage =
-		'You can copy your domain from the Okta Developer ' +
-		'Console. Follow these instructions to find it: ' +
-		findDomainURL;
+		'You can copy your domain from the management console ' +
+		'Console. Follow these instructions to find it.' +
+		'Okta Customer Identity Cloud (formerly Auth0): ' +
+		findAuth0Issuer +
+		'Okta Customer Identity Platform (formerly Okta CIAM): ' +
+		findOktaDomainURL;
 
 	if (testing.disableHttpsCheck) {
 		const httpsWarning =
@@ -25,19 +28,33 @@ const assertIssuer = (issuer, testing = {}) => {
 		console.warn(httpsWarning);
 	}
 
-	if (!issuer) {
-		throw new ConfigurationValidationError('Your Okta URL is missing. ' + copyMessage);
-	} else if (!testing.disableHttpsCheck && !issuer.match(isHttps)) {
-		throw new ConfigurationValidationError(
-			'Your Okta URL must start with https. ' + `Current value: ${issuer}. ${copyMessage}`
-		);
-	} else if (issuer.match(/{yourOktaDomain}/)) {
-		throw new ConfigurationValidationError('Replace {yourOktaDomain} with your Okta domain. ' + copyMessage);
-	} else if (issuer.match(hasDomainAdmin)) {
-		throw new ConfigurationValidationError(
-			'Your Okta domain should not contain -admin. ' + `Current value: ${issuer}. ${copyMessage}`
+	console.log('asserting issuer:', issuer);
+
+	ok(issuer, new ConfigurationValidationError('Your issuer URL is missing. ' + copyMessage));
+
+	if (!testing.disableHttpsCheck) {
+		doesMatch(
+			issuer,
+			isHttps,
+			new ConfigurationValidationError(
+				'Your Okta URL must start with https. ' + `Current value: ${issuer}. ${copyMessage}`
+			)
 		);
 	}
+
+	doesNotMatch(
+		issuer,
+		/{yourOktaDomain}/,
+		new ConfigurationValidationError('Replace {yourOktaDomain} with your Okta domain. ' + copyMessage)
+	);
+
+	doesNotMatch(
+		issuer,
+		/-admin.(okta|oktapreview|okta-emea).com|manage./,
+		new ConfigurationValidationError(
+			'Your Okta domain should not contain `-admin` or `manage`. ' + `Current value: ${issuer}. ${copyMessage}`
+		)
+	);
 };
 
 const assertClientId = (clientId) => {
@@ -46,13 +63,16 @@ const assertClientId = (clientId) => {
 		'in the details for the Application you created. ' +
 		`Follow these instructions to find it: ${findAppCredentialsURL}`;
 
-	if (!clientId) {
-		throw new ConfigurationValidationError('Your client ID is missing. ' + copyCredentialsMessage);
-	} else if (clientId.match(/{clientId}/)) {
-		throw new ConfigurationValidationError(
+	console.log('asserting clientId:', clientId);
+
+	ok(clientId, new ConfigurationValidationError('Your client ID is missing. ' + copyCredentialsMessage));
+	doesNotMatch(
+		clientId,
+		/{clientId}/,
+		new ConfigurationValidationError(
 			'Replace {clientId} with the client ID of your Application. ' + copyCredentialsMessage
-		);
-	}
+		)
+	);
 };
 
 export default class JwtVerifier {
@@ -60,12 +80,24 @@ export default class JwtVerifier {
 	constructor(options = {}) {
 		// Assert configuration options exist and are well-formed (not necessarily correct!)
 		assertIssuer(options?.issuer, options?.testing);
+
 		if (options?.clientId) {
-			assertClientId(options.clientId);
+			assertClientId(options?.clientId);
 		}
 
 		this.claimsToAssert = options?.claimsToAssert || {};
 		this.issuer = options?.issuer;
+		this.url = process.env?.JWT_VERIFY_URL;
+
+		if (!this.url) {
+			loadEnv({ override: true });
+
+			this.url = process.env?.JWT_VERIFY_URL;
+
+			console.log('verifyUrl:', this.url);
+
+			ok(this.url, 'Unable to load url for verifier function!');
+		}
 	}
 
 	async verifyToken(
@@ -102,10 +134,8 @@ export default class JwtVerifier {
 			nonce,
 		};
 
-		console.log(options);
-
 		const reqOptions = {
-			url: verifyUrl,
+			url: this.url,
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${tokenString}`,
@@ -130,7 +160,7 @@ export default class JwtVerifier {
 				// `error.request` is an instance of `XMLHttpRequest` in the
 				// browser and an instance of `http:ClientRequest` in node.js
 				console.log({ request: error.request });
-				throw new Error('No response from verification request');
+				throw new Error('No response from verification request. Please try again.');
 			} else {
 				if (error instanceof ApiError) {
 					throw error;

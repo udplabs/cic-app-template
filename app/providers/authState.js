@@ -14,17 +14,12 @@ export const authStateProvider = new Proxy(authState, {
 			case 'accessToken':
 				value = value ? parseJwt(value) : '';
 
-				document.getElementById(elementMapper[key]).innerHTML =
-					JSON.stringify(value, null, 4);
+				document.getElementById(elementMapper[key]).innerHTML = JSON.stringify(value, null, 4);
 				break;
 			case 'isAuthenticated':
-				eachElement('.auth-invisible', (e) =>
-					e.classList[value ? 'add' : 'remove']('hidden')
-				);
+				eachElement('.auth-invisible', (e) => e.classList[value ? 'add' : 'remove']('hidden'));
 
-				eachElement('.auth-visible', (e) =>
-					e.classList[value ? 'remove' : 'add']('hidden')
-				);
+				eachElement('.auth-visible', (e) => e.classList[value ? 'remove' : 'add']('hidden'));
 
 				if (!value) {
 					target.accessToken = undefined;
@@ -34,25 +29,11 @@ export const authStateProvider = new Proxy(authState, {
 			case 'user':
 				document
 					.querySelectorAll(`[id^=${elementMapper[key]}]`)
-					.forEach(
-						(element) =>
-							(element.innerHTML = !value
-								? ''
-								: JSON.stringify(value, null, 4))
-					);
+					.forEach((element) => (element.innerHTML = !value ? '' : JSON.stringify(value, null, 4)));
 
-				eachElement(
-					'.profile-image',
-					(element) => (element.src = value?.picture || '')
-				);
-				eachElement(
-					'.user-name',
-					(element) => (element.innerText = value?.name || '')
-				);
-				eachElement(
-					'.user-email',
-					(element) => (element.innerText = value?.email || '')
-				);
+				eachElement('.profile-image', (element) => (element.src = value?.picture || ''));
+				eachElement('.user-name', (element) => (element.innerText = value?.name || ''));
+				eachElement('.user-email', (element) => (element.innerText = value?.email || ''));
 
 				break;
 			default:

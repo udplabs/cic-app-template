@@ -8,9 +8,9 @@ import helmet from 'helmet';
 import cors from 'cors';
 import { existsSync, readFileSync } from 'fs';
 import JwtVerifier from './jwtVerifier.js';
-import ApiError from './apiError.js';
+import config from '../config.js';
 
-const loadEnv = (options) => {
+export const loadEnv = (options) => {
 	if (existsSync('.env.local')) {
 		dotenv.config({ path: `.env.local`, ...options });
 	}
@@ -23,15 +23,17 @@ loadEnv();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const { auth, server } = config || {};
+
 const {
-	VITE_AUTH_DOMAIN: domain,
-	VITE_AUTH_CLIENT_ID: clientId,
-	VITE_SERVER_AUDIENCE: AUDIENCE,
-	VITE_AUTH_PERMISSIONS: PERMISSIONS = [],
-	VITE_APP_PORT: APP_PORT,
+	AUTH_CLIENT_ID: clientId = auth?.client_id,
+	AUTH_DOMAIN: domain = auth?.domain,
+	AUTH_ISSUER: ISSUER = auth?.issuer,
+	SERVER_AUDIENCE: AUDIENCE = server?.audience,
+	SERVER_AUTH_PERMISSIONS: AUTH_PERMISSIONS = server?.permissions || [],
 } = process.env;
 
-const permissions = Array.isArray(PERMISSIONS) ? PERMISSIONS : PERMISSIONS.split(' ');
+const permissions = Array.isArray(AUTH_PERMISSIONS) ? AUTH_PERMISSIONS : AUTH_PERMISSIONS.split(' ');
 
 const audience = Array.isArray(AUDIENCE)
 	? AUDIENCE
@@ -39,7 +41,8 @@ const audience = Array.isArray(AUDIENCE)
 	? AUDIENCE?.split(', ')
 	: AUDIENCE?.split(',');
 
-const issuer = domain.lastIndexOf('/') === domain.length - 1 ? 'https://' + domain : 'https://' + domain + '/';
+const issuer =
+	ISSUER || domain.lastIndexOf('/') === domain.length - 1 ? 'https://' + domain : 'https://' + domain + '/';
 
 const app = express();
 
@@ -133,17 +136,5 @@ app.get('/api/scoped', verifyJwt({ claimsToAssert: { 'permissions.includes': per
 			'This is the scoped API. Only a valid access token with both the correct audience AND valid permissions has access. You did it!',
 	})
 );
-
-app.get('/audience', async (req, res) => {
-	const _env = readFileSync('.env');
-
-	const { VITE_AUTH_AUDIENCE: audience } = dotenv.parse(_env) || {};
-
-	res.json({ audience });
-});
-
-// app.listen(PORT, () => {
-// 	console.log(`🚀 Server listening on port ${PORT}`);
-// });
 
 export const handler = app;

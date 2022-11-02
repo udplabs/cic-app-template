@@ -1,32 +1,25 @@
 import { Auth0Client } from '@auth0/auth0-spa-js';
 import { appStateProvider, appState, authStateProvider, authState } from '.';
 import { assert, showContentFromUrl } from '../utils';
-
-const {
-	VITE_AUTH_DOMAIN: domain,
-	VITE_AUTH_CLIENT_ID: client_id,
-	VITE_AUTH_AUDIENCE: audience,
-	VITE_AUTH_CACHE_LOCATION: cacheLocation = 'localstorage',
-	VITE_AUTH_USE_REFRESH_TOKENS: useRefreshTokens = false,
-} = import.meta.env;
-
+import _config from '../../config';
 export class AuthClient extends Auth0Client {
 	constructor(config) {
-		const _config = {
-			domain,
-			client_id,
-			audience,
-			cacheLocation,
-			useRefreshTokens,
+		const { auth: authConfig } = _config;
+
+		console.log({ authConfig });
+		config = {
+			...authConfig,
 			...config,
 		};
 
-		assert(_config?.domain, 'A domain must be provided in the `config.json` file!');
-		assert(_config?.client_id, 'A clientId must be provided in the `config.json` file!');
+		assert(config?.domain, 'A domain must be provided in the `config.js` file!');
+		assert(config?.client_id, 'A clientId must be provided in the `config.js` file!');
 
-		super(_config);
+		super(config);
 
-		this.config = _config;
+		this.config = config;
+
+		console.log('AuthClient:', this.config);
 	}
 
 	async login(targetUrl) {
@@ -66,17 +59,12 @@ export class AuthClient extends Auth0Client {
 			appStateProvider.isLoading = true;
 		}
 
-		const resp = await fetch('/audience');
-
-		const { audience } = (await resp.json()) || {};
-
-		this.config.audience = audience;
-
 		return this.handleAuth(true).then(() => (appStateProvider.isLoading = false));
 	}
 
 	async doAuth(authOptions, force = false) {
 		try {
+			console.log('doing authentication...');
 			authStateProvider.accessToken = await this.getTokenSilently(authOptions);
 
 			if (!authState?.accessToken) {
@@ -103,7 +91,7 @@ export class AuthClient extends Auth0Client {
 		}
 	}
 
-	async handleAuth(force = false) {
+	async handleAuth(force = true) {
 		appStateProvider.loadingTitle = force ? 'Refreshing tokens.' : 'Hang tight!';
 		appStateProvider.loadingMsg = 'Work faster monkeys!';
 
@@ -114,7 +102,6 @@ export class AuthClient extends Auth0Client {
 		const authOptions = {
 			ignoreCache: force,
 			cacheMode: force ? 'off' : 'on',
-			useRefreshTokensFallback: !force,
 			audience: this.config?.audience || undefined,
 		};
 
@@ -127,7 +114,7 @@ export class AuthClient extends Auth0Client {
 		authStateProvider.isAuthenticated = await this.isAuthenticated();
 
 		if (force) {
-			await this.doAuth(authOptions);
+			await this.doAuth(authOptions, force);
 
 			const title = document.querySelector('#content-title');
 
