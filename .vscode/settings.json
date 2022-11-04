@@ -13,10 +13,11 @@
 	"workbench.colorTheme": "Default Dark+",
 	"workbench.editor.highlightModifiedTabs": true,
 	"workbench.startupEditor": "readme",
+	"ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|npm-start",
 	"ShortcutMenuBar.beautify": true,
 	"ShortcutMenuBar.navigateBack": true,
 	"ShortcutMenuBar.navigateForward": true,
 	"ShortcutMenuBar.openFilesList": false,
 	"ShortcutMenuBar.toggleTerminal": true,
-	"ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|npm:start"
+	"task.allowAutomaticTasks": "on"
 }
