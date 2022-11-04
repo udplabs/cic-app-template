@@ -40,7 +40,8 @@
 				"panel": "new",
 				"showReuseMessage": false,
 				"clear": false
-			}
+			},
+			"problemMatcher": []
 		},
 		{
 			"label": "reload-window",
