@@ -12,5 +12,11 @@
 	"terminal.integrated.cwd": "/root/.local/share/code-server/app",
 	"workbench.colorTheme": "Default Dark+",
 	"workbench.editor.highlightModifiedTabs": true,
-	"workbench.startupEditor": "readme"
+	"workbench.startupEditor": "readme",
+	"ShortcutMenuBar.beautify": true,
+	"ShortcutMenuBar.navigateBack": true,
+	"ShortcutMenuBar.navigateForward": true,
+	"ShortcutMenuBar.openFilesList": false,
+	"ShortcutMenuBar.toggleTerminal": true,
+	"ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|npm:start"
 }
