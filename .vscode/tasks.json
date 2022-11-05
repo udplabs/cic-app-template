@@ -12,41 +12,6 @@
 				"showReuseMessage": false,
 				"clear": false
 			}
-		},
-		{
-			"label": "modify-shortcut-extension",
-			"dependsOn": ["shortcut-icon-fix", "reload-window"],
-			"dependsOrder": "sequence",
-			"presentation": {
-				"echo": false,
-				"reveal": "never",
-				"panel": "new",
-				"showReuseMessage": false,
-				"clear": false
-			},
-			// "runOptions": {
-			// 	"runOn": "folderOpen"
-			// },
-			"problemMatcher": []
-		},
-		{
-			"type": "shell",
-			"label": "shortcut-icon-fix",
-			"command": "mv /etc/code-server/auth-rocks-instruqt-configs/assets/_package.json ~/.local/share/code-server/extensions/jerrygoyal.shortcut-menu-bar-3.0.4/package.json",
-			"presentation": {
-				"echo": false,
-				"reveal": "never",
-				"focus": false,
-				"panel": "new",
-				"showReuseMessage": false,
-				"clear": false
-			},
-			"problemMatcher": []
-		},
-		{
-			"label": "reload-window",
-			"type": "process",
-			"command": "${command:workbench.action.reloadWindow}"
 		}
 	]
 }
