@@ -29,7 +29,7 @@ const {
 	AUTH_CLIENT_ID: clientId = auth?.client_id,
 	AUTH_DOMAIN: domain = auth?.domain,
 	AUTH_ISSUER: ISSUER = auth?.issuer,
-	SERVER_AUDIENCE: AUDIENCE = server?.audience,
+	SERVER_AUDIENCE: AUDIENCE = server?.audience || auth?.audience,
 	SERVER_AUTH_PERMISSIONS: AUTH_PERMISSIONS = server?.permissions || [],
 } = process.env;
 
