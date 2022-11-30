@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/fontawesome.css"
       integrity="sha384-4aon80D8rXCGx9ayDt85LbyUHeMWd3UiBaWliBlJ53yzm9hqN21A+o1pqoyK04h+" crossorigin="anonymous" />
     <script src="https://kit.fontawesome.com/4199a717d7.js" crossorigin="anonymous"></script>
-
   </head>
 
   <body class="h-100">
@@ -23,7 +22,13 @@
         <nav class="navbar navbar-expand navbar-light bg-light">
           <div class="container">
             <div class="navbar-brand logo"></div>
-            <div class="navbar-expand d-flex w-100 align-items-center justify-content-between" id="navbarNav">
+            <div class="
+                navbar-expand
+                d-flex
+                w-100
+                align-items-center
+                justify-content-between
+              " id="navbarNav">
               <ul class="navbar-nav mr-auto mx-3">
                 <li class="nav-item">
                   <a href="/" class="nav-link route-link">Home</a>
@@ -37,7 +42,11 @@
               <ul class="navbar-nav auth-invisible d-block">
                 <!-- Login button: show if NOT authenticated -->
                 <li class="nav-item auth-invisible">
-                  <button id="qsLoginBtn" class="btn btn-primary btn-block btn-margin auth-invisible hidden">
+                  <button id="qsLoginBtn" class="
+                      btn btn-primary btn-block btn-margin
+                      auth-invisible
+                      hidden
+                    ">
                     Log in
                   </button>
                 </li>
@@ -73,8 +82,7 @@
       <div id="loader-wrapper" class="d-flex justify-content-center x-loader">
         <div id="loader" class="overlay show x-loader">
           <div class="spanner show x-loader">
-            <div class="loader show x-loader">
-            </div>
+            <div class="loader show x-loader"></div>
             <h3 id="loading-title">Hang tight!</h3>
             <p id="loading-msg">The monkeys are working.</p>
           </div>
@@ -89,14 +97,16 @@
               alt="funAuth/AuthRocks logo" width="75" />
             <h1 class="mb-4">Welcome to AuthRocks!</h1>
 
-            <p id='content-lead' class="lead">
+            <p id="content-lead" class="lead">
               This is a sample application that demonstrates an authentication
               flow for an SPA.
             </p>
           </div>
 
           <div id="auth-content" class="next-steps auth-visible hidden">
-            <h2 id="content-title" class="col my-5 text-center">Congratulations, you've logged in!</h2>
+            <h2 id="content-title" class="col my-5 text-center">
+              Congratulations, you've logged in!
+            </h2>
 
             <div class="row">
               <!-- Begin Challenge 1: Token Section -->
@@ -133,7 +143,8 @@
                   <div class="mb-5 d-flex justify-content-center">
                     <button id="public-api-btn" class="btn btn-primary mt-5">
                       <span class="spinner-grow spinner-grow-sm me-2 hidden" role="status"
-                        aria-hidden="true"></span><span>Try API</span><span class="hidden">Loading...</span></button>
+                        aria-hidden="true"></span><span>Try API</span><span class="hidden">Loading...</span>
+                    </button>
                   </div>
                   <label>Private API</label>
                   <p>
@@ -144,20 +155,21 @@
                   <div class="mb-5 d-flex justify-content-center">
                     <button id="private-api-btn" class="btn btn-primary mt-5">
                       <span class="spinner-grow spinner-grow-sm me-2 hidden" role="status"
-                        aria-hidden="true"></span><span>Try
-                        API</span><span class="hidden">Loading...</span></button>
+                        aria-hidden="true"></span><span>Try API</span><span class="hidden">Loading...</span>
+                    </button>
                   </div>
                   <label>Scoped API</label>
                   <p>
                     The last API not only requires authentication, but also
-                    requires the proper authorization scopes/permissions in the access token.
+                    requires the proper authorization scopes/permissions in the
+                    access token.
                   </p>
                   <div class="mb-5 d-flex justify-content-center">
                     <button id="scoped-api-btn" class="btn btn-primary mt-5">
                       <span class="spinner-grow spinner-grow-sm me-2 hidden" role="status" aria-hidden="true"></span>
-                      <span>Try
-                        API</span>
-                      <span class="hidden">Loading...</span></button>
+                      <span>Try API</span>
+                      <span class="hidden">Loading...</span>
+                    </button>
                   </div>
                   <div class="result-block-container">
                     <div class="result-block reset-on-nav w-100">
@@ -175,7 +187,13 @@
           </div>
         </div>
 
-        <div class="page" id="content-profile">
+        <div id="no-config">
+          <h3 id="content-title" class="col my-5 text-center">
+            <em>Please configure your app to continue.</em>
+            </h2>
+        </div>
+
+        <div class="page hidden" id="content-profile auth-visible hidden">
           <div class="container">
             <div class="row align-items-center profile-header">
               <div class="col-md-2">

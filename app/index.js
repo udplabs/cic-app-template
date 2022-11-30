@@ -64,71 +64,77 @@ export const router = {
 export default async () => {
 	window.onpopstate = onPopState;
 
-	auth0 = new AuthClient();
+	try {
+		auth0 = new AuthClient();
 
-	if (BASE_URL && !BASE_URL.startsWith('/')) {
-		apiUrl = new URL(apiUrl, BASE_URL).toString();
+		appStateProvider.isConfigured = true;
+
+		if (BASE_URL && !BASE_URL.startsWith('/')) {
+			apiUrl = new URL(apiUrl, BASE_URL).toString();
+		}
+
+		// Add event listeners to buttons
+		const loginButton = document.querySelector('#qsLoginBtn');
+		const refreshTokensButton = document.querySelector('#qsRefreshTokens');
+		const logoutButton = document.querySelector('#qsLogoutBtn');
+		const publicAPIButton = document.querySelector('#public-api-btn');
+		const privateAPIButton = document.querySelector('#private-api-btn');
+		const scopedAPIButton = document.querySelector('#scoped-api-btn');
+
+		loginButton.addEventListener('click', () => auth0.login());
+
+		refreshTokensButton.addEventListener('click', () => auth0.refreshTokens());
+
+		logoutButton.addEventListener('click', () => auth0.signout());
+
+		publicAPIButton.addEventListener('click', () =>
+			callApi({
+				auth0,
+				url: window.location.origin + apiUrl + '/public',
+				btnId: 'public-api-btn',
+			})
+		);
+
+		privateAPIButton.addEventListener('click', () =>
+			callApi({
+				auth0,
+				url: window.location.origin + apiUrl + '/private',
+				btnId: 'private-api-btn',
+			})
+		);
+
+		scopedAPIButton.addEventListener('click', () =>
+			callApi({
+				auth0,
+				url: window.location.origin + apiUrl + '/scoped',
+				btnId: 'scoped-api-btn',
+			})
+		);
+
+		const bodyElement = document.getElementsByTagName('body')[0];
+
+		// Listen out for clicks on any hyperlink that navigates to a #/ URL
+		bodyElement.addEventListener('click', (e) => {
+			if (isRouteLink(e.target)) {
+				const url = e.target.getAttribute('href');
+
+				if (showContentFromUrl(url)) {
+					e.preventDefault();
+					window.history.pushState({ url }, {}, url);
+				}
+			}
+		});
+
+		await auth0.handleAuth();
+	} catch (error) {
+		console.log('Configuration not yet set!');
 	}
-
-	// Add event listeners to buttons
-	const loginButton = document.querySelector('#qsLoginBtn');
-	const refreshTokensButton = document.querySelector('#qsRefreshTokens');
-	const logoutButton = document.querySelector('#qsLogoutBtn');
-	const publicAPIButton = document.querySelector('#public-api-btn');
-	const privateAPIButton = document.querySelector('#private-api-btn');
-	const scopedAPIButton = document.querySelector('#scoped-api-btn');
-
-	loginButton.addEventListener('click', () => auth0.login());
-
-	refreshTokensButton.addEventListener('click', () => auth0.refreshTokens());
-
-	logoutButton.addEventListener('click', () => auth0.signout());
-
-	publicAPIButton.addEventListener('click', () =>
-		callApi({
-			auth0,
-			url: window.location.origin + apiUrl + '/public',
-			btnId: 'public-api-btn',
-		})
-	);
-
-	privateAPIButton.addEventListener('click', () =>
-		callApi({
-			auth0,
-			url: window.location.origin + apiUrl + '/private',
-			btnId: 'private-api-btn',
-		})
-	);
-
-	scopedAPIButton.addEventListener('click', () =>
-		callApi({
-			auth0,
-			url: window.location.origin + apiUrl + '/scoped',
-			btnId: 'scoped-api-btn',
-		})
-	);
 
 	// If unable to parse the history hash, default to the root URL
 	if (!showContentFromUrl(window.location.pathname)) {
 		showContentFromUrl('/');
 		window.history.replaceState({ url: '/' }, {}, '/');
 	}
-
-	const bodyElement = document.getElementsByTagName('body')[0];
-
-	// Listen out for clicks on any hyperlink that navigates to a #/ URL
-	bodyElement.addEventListener('click', (e) => {
-		if (isRouteLink(e.target)) {
-			const url = e.target.getAttribute('href');
-
-			if (showContentFromUrl(url)) {
-				e.preventDefault();
-				window.history.pushState({ url }, {}, url);
-			}
-		}
-	});
-
-	await auth0.handleAuth();
 
 	return (appStateProvider.isLoading = false);
 };

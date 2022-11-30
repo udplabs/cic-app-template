@@ -46,6 +46,14 @@ export const getConfig = () => {
 	}
 
 	if (config) {
+		if (config?.auth?.client_id === '_CLIENTID_') {
+			delete config.auth.client_id;
+		}
+
+		if (config?.auth?.domain === '_DOMAIN_') {
+			delete config.auth.domain;
+		}
+
 		configBase64 = window.btoa(JSON.stringify(config));
 	}
 

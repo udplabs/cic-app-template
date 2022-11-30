@@ -9,7 +9,7 @@
 	"security.workspace.trust.startupPrompt": "never",
 	"security.workspace.trust.untrustedFiles": "open",
 	"terminal.integrated.defaultProfile.linux": "bash",
-	"terminal.integrated.cwd": "/root/.local/share/code-server/app",
+	// "terminal.integrated.cwd": "/root/.local/share/code-server/app",
 	"workbench.colorTheme": "Default Dark+",
 	"workbench.editor.highlightModifiedTabs": true,
 	"workbench.startupEditor": "readme",
