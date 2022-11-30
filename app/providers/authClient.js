@@ -103,6 +103,8 @@ export class AuthClient extends Auth0Client {
 						}
 					}
 				}
+			} else {
+				console.log(error);
 			}
 		}
 	}
