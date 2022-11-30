@@ -1,4 +1,5 @@
 import { router } from './index.js';
+import config from '../config';
 
 export const assert = (condition, message = 'Assertion failed!') => {
 	if (!condition) {
@@ -29,8 +30,37 @@ export const elementMapper = {
  * Returns true if `element` is a hyperlink that can be considered a link to another SPA route
  * @param {*} element The element to check
  */
-export const isRouteLink = (element) =>
-	element.tagName === 'A' && element.classList.contains('route-link');
+export const isRouteLink = (element) => element.tagName === 'A' && element.classList.contains('route-link');
+
+export const getConfig = () => {
+	const _currentConfigBase64 = localStorage.getItem('config');
+	let _currentConfig;
+	let configBase64;
+
+	if (_currentConfigBase64) {
+		_currentConfig = window.atob(_currentConfigBase64);
+
+		if (_currentConfig) {
+			_currentConfig = JSON.parse(_currentConfig);
+		}
+	}
+
+	if (config) {
+		configBase64 = window.btoa(JSON.stringify(config));
+	}
+
+	let result = { hasChanged: false, config };
+
+	if (_currentConfigBase64 !== configBase64) {
+		result.hasChanged = true;
+
+		localStorage.setItem('config', configBase64);
+	}
+
+	console.log(result);
+
+	return result;
+};
 
 export const parseJwt = (token) => {
 	var base64Url = token.split('.')[1];

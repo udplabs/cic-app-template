@@ -1,21 +1,28 @@
 import { Auth0Client } from '@auth0/auth0-spa-js';
 import { appStateProvider, appState, authStateProvider, authState } from '.';
-import { assert, showContentFromUrl } from '../utils';
-import _config from '../../config';
+import { assert, getConfig, showContentFromUrl } from '../utils';
 export class AuthClient extends Auth0Client {
+	forceAuth = false;
 	constructor(config) {
+		const { hasChanged, config: _config } = getConfig();
+
 		const { auth: authConfig } = _config;
 
 		console.log({ authConfig });
+
 		config = {
 			...authConfig,
-			...config,
+			..._config,
 		};
 
 		assert(config?.domain, 'A domain must be provided in the `config.js` file!');
 		assert(config?.client_id, 'A clientId must be provided in the `config.js` file!');
 
 		super(config);
+
+		if (hasChanged) {
+			this.forceAuth = true;
+		}
 
 		this.config = config;
 
@@ -65,6 +72,7 @@ export class AuthClient extends Auth0Client {
 	async doAuth(authOptions, force = false) {
 		try {
 			console.log('doing authentication...');
+
 			authStateProvider.accessToken = await this.getTokenSilently(authOptions);
 
 			if (!authState?.accessToken) {
@@ -83,15 +91,23 @@ export class AuthClient extends Auth0Client {
 				console.log(error.error);
 
 				if (force) {
-					authStateProvider.accessToken = await this.getTokenWithPopup({
-						ignoreCache: true,
-					});
+					try {
+						authStateProvider.accessToken = await this.getTokenWithPopup({
+							ignoreCache: true,
+						});
+					} catch (error) {
+						if (error?.error !== 'cancelled') {
+							throw new Error(error);
+						} else {
+							console.info('User cancelled login.');
+						}
+					}
 				}
 			}
 		}
 	}
 
-	async handleAuth(force = true) {
+	async handleAuth(force = this.forceAuth) {
 		appStateProvider.loadingTitle = force ? 'Refreshing tokens.' : 'Hang tight!';
 		appStateProvider.loadingMsg = 'Work faster monkeys!';
 
