@@ -5,10 +5,10 @@ const defaultAuthConfig = {
 const config = {
 	auth: {
 		...defaultAuthConfig,
-		domain: 'atko-rocks-gentle-animal.demo-platform-staging.auth0app.com',
-		client_id: 'RBz9va21UvCeuSTYT9nMoRTZah1iTnoH',
+		domain: '_DOMAIN_',
+		client_id: '_CLIENTID_',
 		// UNCOMMENT LINE 12 to test the private API
-		// audience: ['api://authrocks'],
+		audience: ['_AUDIENCE_'],
 	},
 	app: {
 		port: 3000,
