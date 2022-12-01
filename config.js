@@ -6,9 +6,9 @@ const config = {
 	auth: {
 		...defaultAuthConfig,
 		domain: '_DOMAIN_',
-		client_id: '_CLIENTID_',
+		clientId: '_CLIENTID_',
 		// UNCOMMENT LINE 12 to test the private API
-		// audience: ['_AUDIENCE_'],
+		// audience: ['authRocks'],
 	},
 	app: {
 		port: 3000,
