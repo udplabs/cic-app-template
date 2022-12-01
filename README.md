@@ -15,7 +15,7 @@ It is part of the Auth Rocks developer workshop presented by [Okta](https://okta
    - `Allowed Web Origin`
    - `Allowed Origins (CORS)`
 2. Open the `config.js` file.
-3. If the `domain` and `client_id` are not already set, copy the appropriate values from the SPA app created in your tenant.
+3. If the `domain` and `clientId` are not already set, copy the appropriate values from the SPA app created in your tenant.
 
 ```javascript
 /*
@@ -25,7 +25,7 @@ const config = {
 	auth: {
 		...defaultAuthConfig,
 		domain: 'atko-rocks-gentle-animal.demo-platform-staging.auth0app.com',
-		client_id: 'RBz9va21UvCeuSTYT9nMoRTZah1iTnoH',
+		clientId: 'RBz9va21UvCeuSTYT9nMoRTZah1iTnoH',
 	},
 	app: {
 		port: 3000,
@@ -45,7 +45,7 @@ const config = {
 	auth: {
 		...defaultAuthConfig,
 		domain: 'atko-rocks-gentle-animal.demo-platform-staging.auth0app.com',
-		client_id: 'RBz9va21UvCeuSTYT9nMoRTZah1iTnoH',
+		clientId: 'RBz9va21UvCeuSTYT9nMoRTZah1iTnoH',
 		/* UNCOMMENT this line ( ⌘ + / or CTRL + / ) to test the private API */
 		// audience: ['api://authrocks'],
 	},

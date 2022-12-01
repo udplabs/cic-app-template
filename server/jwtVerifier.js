@@ -145,6 +145,8 @@ export default class JwtVerifier {
 
 		const jwt = JWT.decode(tokenString);
 
+		console.log(options);
+
 		try {
 			// do the verification
 			await axios(reqOptions);

@@ -8,15 +8,16 @@ export class AuthClient extends Auth0Client {
 
 		const { auth: authConfig } = _config;
 
-		console.log({ authConfig });
-
 		config = {
 			...authConfig,
 			..._config,
 		};
 
-		assert(config?.domain, 'A domain must be provided in the `config.js` file!');
-		assert(config?.client_id, 'A clientId must be provided in the `config.js` file!');
+		assert(config?.domain && config.domain !== '_DOMAIN_', 'A valid domain must be provided in the `config.js` file!');
+		assert(
+			config?.clientId && config.clientId !== '_CLIENTID_',
+			'A valid clientId must be provided in the `config.js` file!'
+		);
 
 		super(config);
 
@@ -25,8 +26,6 @@ export class AuthClient extends Auth0Client {
 		}
 
 		this.config = config;
-
-		console.log('AuthClient:', this.config);
 	}
 
 	async login(targetUrl) {
@@ -34,7 +33,9 @@ export class AuthClient extends Auth0Client {
 			console.log('Logging in', targetUrl);
 
 			const options = {
-				redirect_uri: window.location.origin,
+				authorizationParams: {
+					redirect_uri: window.location.origin,
+				},
 			};
 
 			if (targetUrl) {
@@ -54,7 +55,9 @@ export class AuthClient extends Auth0Client {
 			console.log('Logging out');
 
 			return this.logout({
-				returnTo: window.location.origin,
+				logoutParams: {
+					returnTo: window.location.origin,
+				},
 			});
 		} catch (error) {
 			return console.log('Log out failed', error);
@@ -73,43 +76,45 @@ export class AuthClient extends Auth0Client {
 		try {
 			console.log('doing authentication...');
 
-			authStateProvider.accessToken = await this.getTokenSilently(authOptions);
+			if (await this.isAuthenticated()) {
+				authStateProvider.accessToken = await this.getTokenSilently(authOptions);
 
-			if (!authState?.accessToken) {
-				console.log('Unable to obtain access token. Something went wrong.');
-				return alert('Something went wrong attempting to fetch an access token. Please try again.');
+				if (!authState?.accessToken) {
+					console.log('Unable to obtain access token. Something went wrong.');
+					return alert('Something went wrong attempting to fetch an access token. Please try again.');
+				}
+
+				authStateProvider.user = await this.getUser();
+
+				return {
+					accessToken: authState?.accessToken,
+					user: authState?.user,
+				};
 			}
-
-			authStateProvider.user = await this.getUser();
-
-			return {
-				accessToken: authState?.accessToken,
-				user: authState?.user,
-			};
 		} catch (error) {
-			if (error.error === 'login_required') {
-				console.log(error.error);
-
-				if (force) {
-					try {
-						authStateProvider.accessToken = await this.getTokenWithPopup({
-							ignoreCache: true,
-						});
-					} catch (error) {
-						if (error?.error !== 'cancelled') {
-							throw new Error(error);
-						} else {
-							console.info('User cancelled login.');
-						}
+			console.log(JSON.stringify(error, null, 2));
+			if (['consent_required', 'login_required'].includes(error?.error)) {
+				force = true;
+			}
+			if (force) {
+				try {
+					authStateProvider.accessToken = await this.getTokenWithPopup({
+						...authOptions,
+						cacheMode: 'off',
+					});
+				} catch (error) {
+					if (error?.error !== 'cancelled') {
+						throw new Error(error);
+					} else {
+						console.info('User cancelled login.');
 					}
 				}
-			} else {
-				console.log(error);
 			}
 		}
 	}
 
 	async handleAuth(force = this.forceAuth) {
+		console.log('force:', force);
 		appStateProvider.loadingTitle = force ? 'Refreshing tokens.' : 'Hang tight!';
 		appStateProvider.loadingMsg = 'Work faster monkeys!';
 
@@ -118,9 +123,10 @@ export class AuthClient extends Auth0Client {
 		}
 
 		const authOptions = {
-			ignoreCache: force,
 			cacheMode: force ? 'off' : 'on',
-			audience: this.config?.audience || undefined,
+			authorizationParams: {
+				audience: this.config?.audience || undefined,
+			},
 		};
 
 		console.log({ authOptions });

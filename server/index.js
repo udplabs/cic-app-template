@@ -26,7 +26,7 @@ const __dirname = dirname(__filename);
 const { auth, server } = config || {};
 
 const {
-	AUTH_CLIENT_ID: clientId = auth?.client_id,
+	AUTH_CLIENT_ID: clientId = auth?.clientId,
 	AUTH_DOMAIN: domain = auth?.domain,
 	AUTH_ISSUER: ISSUER = auth?.issuer,
 	SERVER_AUDIENCE: AUDIENCE = server?.audience || auth?.audience,
@@ -52,12 +52,17 @@ app.use(helmet());
 app.use(express.static(join(__dirname, 'public')));
 
 const verifyJwt = (options) => {
+	if (audience && options?.audience?.includes('not_configured')) {
+		delete options.audience;
+	}
+
 	options = {
 		issuer,
 		clientId,
 		audience,
 		...options,
 	};
+
 	const verifier = new JwtVerifier(options);
 
 	const verifyToken = async (req, res, next) => {
@@ -83,10 +88,8 @@ const verifyJwt = (options) => {
 
 			const accessToken = match[1];
 
-			console.log(audience);
-
 			req.jwt = await verifier.verifyToken(accessToken, {
-				audience,
+				audience: options?.audience,
 			});
 
 			next();
@@ -121,7 +124,7 @@ app.get('/api/public', (req, res) =>
 	})
 );
 
-app.get('/api/private', verifyJwt(), (req, res) =>
+app.get('/api/private', verifyJwt({ audience: ['not_configured'] }), (req, res) =>
 	res.json({
 		success: true,
 		message:

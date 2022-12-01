@@ -37,7 +37,7 @@ export const getConfig = () => {
 	let _currentConfig;
 	let configBase64;
 
-	if (_currentConfigBase64) {
+	if (_currentConfigBase64 && !['undefined', 'null'].includes(_currentConfigBase64)) {
 		_currentConfig = window.atob(_currentConfigBase64);
 
 		if (_currentConfig) {
@@ -45,13 +45,9 @@ export const getConfig = () => {
 		}
 	}
 
-	if (config) {
-		if (config?.auth?.client_id === '_CLIENTID_') {
-			delete config.auth.client_id;
-		}
-
-		if (config?.auth?.domain === '_DOMAIN_') {
-			delete config.auth.domain;
+	if (config && config?.auth?.clientId !== '_CLIENTID_' && config?.auth?.domain !== '_DOMAIN_') {
+		if (config?.auth?.audience?.includes('_AUDIENCE_')) {
+			delete config.auth.audience;
 		}
 
 		configBase64 = window.btoa(JSON.stringify(config));
@@ -59,13 +55,15 @@ export const getConfig = () => {
 
 	let result = { hasChanged: false, config };
 
-	if (_currentConfigBase64 !== configBase64) {
-		result.hasChanged = true;
+	result.hasChanged = _currentConfigBase64 !== configBase64;
 
+	if (!_currentConfigBase64 || result.hasChanged) {
 		localStorage.setItem('config', configBase64);
 	}
 
-	console.log(result);
+	console.group('=== config ===');
+	console.log(JSON.stringify(result, null, 2));
+	console.groupEnd();
 
 	return result;
 };
