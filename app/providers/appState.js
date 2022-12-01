@@ -9,7 +9,7 @@ const defaultLoadingMsg = 'The monkeys are working.';
 
 export let appState = {
 	apiData: undefined,
-	isConfigured: false,
+	isConfigured: true,
 	isLoading: true,
 	loadingTitle: defaultLoadingTitle,
 	loadingMsg: defaultLoadingMsg,
@@ -38,7 +38,12 @@ export const appStateProvider = new Proxy(appState, {
 			case 'isConfigured':
 				const noConfigElement = document.getElementById('no-config');
 
-				noConfigElement.classList[value ? 'remove' : 'add']('hidden');
+				if (value) {
+					noConfigElement.classList.add('hidden');
+				} else {
+					noConfigElement.classList.remove('hidden');
+				}
+				// noConfigElement.classList[value ? 'remove' : 'add']('hidden');
 
 				break;
 			case 'isLoading':
