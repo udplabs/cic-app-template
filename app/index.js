@@ -1,4 +1,4 @@
-import { appStateProvider, AuthClient, authState, buttonState } from './providers';
+import { appState, appStateProvider, AuthClient, authState, buttonState } from './providers';
 import { isRouteLink, showContent, showContentFromUrl } from './utils';
 
 const { BASE_URL } = import.meta.env;
@@ -67,8 +67,6 @@ export default async () => {
 	try {
 		auth0 = new AuthClient();
 
-		appStateProvider.isConfigured = true;
-
 		if (BASE_URL && !BASE_URL.startsWith('/')) {
 			apiUrl = new URL(apiUrl, BASE_URL).toString();
 		}
@@ -127,6 +125,8 @@ export default async () => {
 
 		await auth0.handleAuth();
 	} catch (error) {
+		console.log(error);
+		appStateProvider.isConfigured = false;
 		console.log('Configuration not yet set!');
 	}
 
