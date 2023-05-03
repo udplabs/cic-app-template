@@ -1,12 +1,11 @@
 {
 	"name": "auth-rocks-app",
 	"version": "1.0.0",
-	"description": "Template vanilla JS application using Node Express.",
+	"description": "Template vanilla JS application using ViteJS.",
 	"repository": {
 		"url": "https://github.com/udplabs/auth-rocks-app-template"
 	},
-	"main": "server.js",
-	"module": "main.js",
+	"main": "main.js",
 	"type": "module",
 	"scripts": {
 		"start": "npm run dev",
@@ -33,7 +32,6 @@
 		"axios": "^1.1.3",
 		"cors": "^2.8.5",
 		"dotenv": "^16.0.3",
-		"express": "^4.18.2",
 		"helmet": "^3.23.3",
 		"highlight.js": "^11.6.0",
 		"jsonwebtoken": "^8.5.1",
