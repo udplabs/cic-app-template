@@ -1,11 +1,22 @@
 import { appState, appStateProvider, AuthClient, authState, buttonState } from './providers';
-import { isRouteLink, showContent, showContentFromUrl } from './utils';
+import {
+	getConfig,
+	isRouteLink, showContent, showContentFromUrl
+} from './utils';
 
 const { BASE_URL } = import.meta.env;
 
 // Initialize global auth0
 var auth0 = undefined;
-var apiUrl = '/api';
+var apiPath = '/api';
+
+const { config: _config } = getConfig();
+
+const {
+	server: { host },
+} = _config || {};
+
+var apiUrl = host + apiPath;
 
 /**
  * Calls the API endpoint with an authorization token
@@ -34,7 +45,7 @@ export const callApi = async ({ auth0, url, btnId }) => {
 		const result = {
 			status,
 			statusText,
-			...(await response.json()),
+			// ...(await response.json()),
 		};
 
 		return (appStateProvider.apiData = result);
@@ -88,7 +99,7 @@ export default async () => {
 		publicAPIButton.addEventListener('click', () =>
 			callApi({
 				auth0,
-				url: window.location.origin + apiUrl + '/public',
+				url: apiUrl + '/public',
 				btnId: 'public-api-btn',
 			})
 		);
@@ -96,7 +107,7 @@ export default async () => {
 		privateAPIButton.addEventListener('click', () =>
 			callApi({
 				auth0,
-				url: window.location.origin + apiUrl + '/private',
+				url: apiUrl + '/private',
 				btnId: 'private-api-btn',
 			})
 		);
@@ -104,7 +115,7 @@ export default async () => {
 		scopedAPIButton.addEventListener('click', () =>
 			callApi({
 				auth0,
-				url: window.location.origin + apiUrl + '/scoped',
+				url: apiUrl + '/scoped',
 				btnId: 'scoped-api-btn',
 			})
 		);
