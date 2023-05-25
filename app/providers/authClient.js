@@ -13,11 +13,21 @@ export class AuthClient extends Auth0Client {
 			..._config,
 		};
 
-		assert(config?.domain && config.domain !== '_DOMAIN_', 'A valid domain must be provided in the `config.js` file!');
-		assert(
-			config?.clientId && config.clientId !== '_CLIENTID_',
-			'A valid clientId must be provided in the `config.js` file!'
-		);
+		try {
+			assert(
+				config?.domain && config.domain !== '_DOMAIN_',
+				'A valid domain must be provided in the `config.js` file!'
+			);
+			assert(
+				config?.clientId && config.clientId !== '_CLIENTID_',
+				'A valid clientId must be provided in the `config.js` file!'
+			);
+
+			appStateProvider['isConfigured'] = true;
+		} catch (error) {
+			console.log(error);
+			appStateProvider['isConfigured'] = false;
+		}
 
 		super(config);
 
