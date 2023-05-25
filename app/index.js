@@ -1,4 +1,9 @@
-import { appStateProvider, AuthClient, authState, buttonState } from './providers';
+import {
+    appStateProvider,
+    AuthClient,
+    authState,
+    buttonState,
+} from './providers';
 import { isRouteLink, showContent, showContentFromUrl } from './utils';
 
 const { BASE_URL } = import.meta.env;
@@ -18,7 +23,9 @@ export const callApi = async ({ auth0, url, btnId }) => {
 
         history.pushState('', null, window.location.pathname);
 
-        const accessToken = authState?.accessToken || (await auth0.getTokenSilently({ cacheOnly: 'off' }));
+        const accessToken =
+            authState?.accessToken ||
+            (await auth0.getTokenSilently({ cacheOnly: 'off' }));
 
         const fetchOptions = {
             method: 'GET',
@@ -40,7 +47,9 @@ export const callApi = async ({ auth0, url, btnId }) => {
         return (appStateProvider.apiData = result);
     } catch (error) {
         console.error(error);
-        alert('Unable to access API or API is not configured correctly. See console for details.');
+        alert(
+            'Unable to access API or API is not configured correctly. See console for details.'
+        );
     } finally {
         if (btnId) {
             buttonState({ id: btnId, isLoading: false });
@@ -57,7 +66,8 @@ export const onPopState = ({ state }) => {
 // URL mapping, from hash to a function that responds to that URL action
 export const router = {
     '/': () => showContent('content-home'),
-    '/profile': () => auth0?.requireAuth(() => showContent('content-profile'), '/profile'),
+    '/profile': () =>
+        auth0?.requireAuth(() => showContent('content-profile'), '/profile'),
     '/login': () => login(),
 };
 
