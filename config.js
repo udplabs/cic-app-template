@@ -8,7 +8,7 @@ const config = {
 		domain: '_DOMAIN_',
 		clientId: '_CLIENTID_',
 		// UNCOMMENT the following line to test the private API
-		// audience: ['authRocks'],
+		// audience: ['api://authRocks/'],
 	},
 	app: {
 		port: 3000,
