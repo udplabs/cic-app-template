@@ -3,14 +3,18 @@ import { appStateProvider, appState, authStateProvider, authState } from '.';
 import { assert, getConfig, showContentFromUrl } from '../utils';
 export class AuthClient extends Auth0Client {
 	forceAuth = false;
-	constructor(config) {
-		const { hasChanged, config: _config } = getConfig();
+	enableSilentAuth = false;
+	newConfig = undefined;
 
-		const { auth: authConfig } = _config;
+	constructor(config) {
+		const { hasChanged, config: _config, previousConfig } = getConfig();
+
+		const { auth: authConfig } = _config || {};
+		const { auth: prevAuthConfig } = previousConfig || {};
 
 		config = {
-			...authConfig,
-			..._config,
+			...(prevAuthConfig ?? authConfig),
+			...config,
 		};
 
 		try {
@@ -31,11 +35,16 @@ export class AuthClient extends Auth0Client {
 
 		super(config);
 
-		if (hasChanged) {
-			this.forceAuth = true;
-		}
-
 		this.config = config;
+		this.newConfig = { ...authConfig, ...config };
+
+		this.enableSilentAuth = config?.app?.enableSilentAuth || this.enableSilentAuth;
+
+		console.info('silentAuth Enabled:', this.enableSilentAuth);
+		if (hasChanged) {
+			console.log('config has changed! You may need to refresh your tokens.');
+			// this.forceAuth = true;
+		}
 	}
 
 	async login(targetUrl) {
@@ -74,12 +83,35 @@ export class AuthClient extends Auth0Client {
 		}
 	}
 
-	async refreshTokens() {
-		if (!appState.isLoading) {
+	async refreshTokens(silent = false) {
+		if (!appState.isLoading && !silent) {
 			appStateProvider.isLoading = true;
 		}
 
-		return this.handleAuth(true).then(() => (appStateProvider.isLoading = false));
+		console.info('refreshing tokens...');
+		const { accessToken } = await this.handleAuth(true, silent);
+
+		if (appState.isLoading && !silent) {
+			appStateProvider.isLoading = false;
+		}
+
+		return accessToken;
+	}
+
+	async getAccessToken(authOptions = {}, force = false) {
+		console.info('getting accessToken...');
+
+		if (!force) {
+			authOptions = { cacheMode: 'cache-only', ...authOptions };
+		}
+
+		console.log(authOptions);
+
+		authStateProvider.accessToken = await this.getTokenSilently(authOptions);
+	}
+
+	async getProfile() {
+		authStateProvider.user = await this.getUser();
 	}
 
 	async doAuth(authOptions, force = false) {
@@ -87,14 +119,14 @@ export class AuthClient extends Auth0Client {
 			console.log('doing authentication...');
 
 			if (await this.isAuthenticated()) {
-				authStateProvider.accessToken = await this.getTokenSilently(authOptions);
+				await this.getAccessToken(authOptions, force);
 
 				if (!authState?.accessToken) {
 					console.log('Unable to obtain access token. Something went wrong.');
 					return alert('Something went wrong attempting to fetch an access token. Please try again.');
 				}
 
-				authStateProvider.user = await this.getUser();
+				await this.getProfile();
 
 				return {
 					accessToken: authState?.accessToken,
@@ -104,14 +136,17 @@ export class AuthClient extends Auth0Client {
 		} catch (error) {
 			console.log(JSON.stringify(error, null, 2));
 			if (['consent_required', 'login_required'].includes(error?.error)) {
-				force = true;
+				// force = true;
 			}
 			if (force) {
 				try {
-					authStateProvider.accessToken = await this.getTokenWithPopup({
-						...authOptions,
-						cacheMode: 'off',
-					});
+					return {
+						accessToken: await this.getTokenWithPopup({
+							...authOptions,
+							cacheMode: 'off',
+						}),
+						user: await this.getProfile(),
+					};
 				} catch (error) {
 					if (error?.error !== 'cancelled') {
 						throw new Error(error);
@@ -123,32 +158,32 @@ export class AuthClient extends Auth0Client {
 		}
 	}
 
-	async handleAuth(force = this.forceAuth) {
+	async handleAuth(force = this.forceAuth, silent = false) {
 		console.log('force:', force);
-		appStateProvider.loadingTitle = force ? 'Refreshing tokens.' : 'Hang tight!';
+		appStateProvider.loadingTitle = this.enableSilentAuth && force && !silent ? 'Refreshing tokens.' : 'Hang tight!';
 		appStateProvider.loadingMsg = 'Work faster monkeys!';
 
-		if (!appState.isLoading) {
+		if (!appState.isLoading && !silent) {
 			appStateProvider.isLoading = true;
 		}
 
 		const authOptions = {
 			cacheMode: force ? 'off' : 'on',
 			authorizationParams: {
-				audience: this.config?.audience || undefined,
+				audience: (force ? this.newConfig?.audience : this.config?.audience) ?? undefined,
 			},
 		};
-
-		console.log({ authOptions });
 
 		// 1) check if URL contains redirect params & handle if it does
 		await this.handleLoginRedirect();
 
 		// 2) Check if user is authenticated. This effectively makes a userinfo call
+		console.log('checking if authenticated...');
 		authStateProvider.isAuthenticated = await this.isAuthenticated();
+		let result = {};
 
 		if (force) {
-			await this.doAuth(authOptions, force);
+			result = await this.doAuth(authOptions, force);
 
 			const title = document.querySelector('#content-title');
 
@@ -156,18 +191,43 @@ export class AuthClient extends Auth0Client {
 				title.innerHTML = 'Tokens refreshed!';
 			}
 
-			return (window.location.hash = '#content-lead');
+			if (!silent) {
+				window.location.hash = '#content-lead';
+				return result;
+			}
 		}
 
-		if (!authState.isAuthenticated || (authState.isAuthenticated && !authState.accessToken)) {
+		if (!authState.isAuthenticated) {
 			console.log('> User not authenticated');
 
-			await this.doAuth(authOptions);
+			if (this.enableSilentAuth) {
+				result = await this.doAuth(authOptions);
+			}
 		}
 
-		if (authState.isAuthenticated) {
-			return console.log('> User is authenticated');
+		console.log('auth result:', result);
+		if (result?.accessToken) {
+			authStateProvider.accessToken = result.accessToken;
 		}
+
+		if (result?.user) {
+			authStateProvider.user = result.user;
+		}
+
+		if (authState.isAuthenticated && !force) {
+			if (!authState?.accessToken && !result?.accessToken) {
+				console.log('> Setting accessToken...');
+				authState.accessToken = await this.getAccessToken();
+			}
+
+			if (!authState?.user && !result?.user) {
+				console.log('> Setting profile data...');
+				authState.user = await this.getProfile();
+			}
+
+			console.log('> User is authenticated');
+		}
+		return result;
 	}
 
 	async handleLoginRedirect() {

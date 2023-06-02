@@ -18,7 +18,9 @@ export const callApi = async ({ auth0, url, btnId }) => {
 
 		history.pushState('', null, window.location.pathname);
 
-		const accessToken = authState?.accessToken || (await auth0.getTokenSilently({ cacheOnly: 'off' }));
+		const accessToken = ['scoped-api-btn', 'private-api-btn'].includes(btnId)
+			? await auth0.refreshTokens(true)
+			: await auth0.getAccessToken();
 
 		const fetchOptions = {
 			method: 'GET',

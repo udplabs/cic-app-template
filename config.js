@@ -11,6 +11,7 @@ const config = {
 		// audience: ['api://authrocks/'],
 	},
 	app: {
+		enableSilentAuth: false,
 		port: 3000,
 	},
 	server: {
