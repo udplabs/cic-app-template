@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
 
 import { verifyJwt } from './verifyJwt.js';
-import { getAudience } from './getAudience.js';
+import getAudience from './getAudience.js';
 import config from '../config.js';
 
 export const loadEnv = (options) => {
@@ -24,7 +24,7 @@ loadEnv();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const { server } = config || {};
+const { auth, server } = config || {};
 
 const { SERVER_AUTH_PERMISSIONS: AUTH_PERMISSIONS = server?.permissions || [] } = process.env;
 
