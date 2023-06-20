@@ -22,6 +22,14 @@ export const callApi = async ({ auth0, url, btnId }) => {
 			buttonState({ id: btnId });
 		}
 
+		// Clear the response block
+		const responseElement = document.getElementById('api-call-result');
+
+		if (responseElement) {
+			responseElement.innerText = '{}';
+		}
+		// ===
+
 		history.pushState('', null, window.location.pathname);
 
 		const accessToken = ['scoped-api-btn', 'private-api-btn'].includes(btnId)
