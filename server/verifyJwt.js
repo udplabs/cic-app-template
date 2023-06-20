@@ -61,7 +61,7 @@ export const verifyJwt = (options) => {
 	 * @param {Request} req
 	 * @param {Response} res
 	 * @param {NextFunction} next
-	 * @returns {Promise<void>}
+	 * @returns {void}
 	 */
 	const verifyToken = async (req, res, next) => {
 		try {

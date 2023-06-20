@@ -106,8 +106,6 @@ export default class JwtVerifier {
 
 			this.url = process.env?.JWT_VERIFY_URL;
 
-			console.log('verifyUrl:', this.url);
-
 			ok(this.url, 'Unable to load url for verifier function!');
 		}
 	}
@@ -157,12 +155,10 @@ export default class JwtVerifier {
 			headers: {
 				Authorization: `Bearer ${tokenString}`,
 			},
-			data: options,
+			data,
 		};
 
 		const jwt = JWT.decode(tokenString);
-
-		console.log(options);
 
 		try {
 			// do the verification
