@@ -9,6 +9,12 @@ var apiUrl = '/api';
 
 /**
  * Calls the API endpoint with an authorization token
+ *
+ * @param {Object} options
+ * @param {AuthClient} options.auth0
+ * @param {string} options.url
+ * @param {string} options.btnId
+ * @returns {Promise}
  */
 export const callApi = async ({ auth0, url, btnId }) => {
 	try {
@@ -63,6 +69,9 @@ export const router = {
 	'/login': () => login(),
 };
 
+/**
+ * Runs as the default function when the page is initially loaded.
+ */
 export default async () => {
 	window.onpopstate = onPopState;
 

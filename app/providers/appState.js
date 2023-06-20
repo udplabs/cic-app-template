@@ -7,6 +7,9 @@ hljs.configure({ ignoreUnescapedHTML: true });
 const defaultLoadingTitle = 'Hang tight!';
 const defaultLoadingMsg = 'The monkeys are working.';
 
+/**
+ * @type {AppState}
+ */
 export let appState = {
 	apiData: undefined,
 	isConfigured: false,
@@ -16,6 +19,13 @@ export let appState = {
 };
 
 export const appStateProvider = new Proxy(appState, {
+	/**
+	 *
+	 * @param {AppState} target
+	 * @param {string | symbol} key
+	 * @param {*} value
+	 * @returns
+	 */
 	set: (target, key, value) => {
 		target[key] = value;
 
@@ -66,3 +76,13 @@ export const appStateProvider = new Proxy(appState, {
 		return true;
 	},
 });
+
+/**
+ * @typedef AppState
+ * @type {Object}
+ * @property {Object} apiData
+ * @property {boolean} isConfigured
+ * @property {boolean} isLoading
+ * @property {string} loadingTitle
+ * @property {string} loadingMsg
+ */

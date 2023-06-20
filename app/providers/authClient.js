@@ -47,6 +47,11 @@ export class AuthClient extends Auth0Client {
 		}
 	}
 
+	/**
+	 *
+	 * @param {string} targetUrl
+	 * @returns {void}
+	 */
 	async login(targetUrl) {
 		try {
 			console.log('Logging in', targetUrl);
@@ -83,6 +88,12 @@ export class AuthClient extends Auth0Client {
 		}
 	}
 
+	/**
+	 * Forces the app to fetch new tokens rather than use the existing tokens from the cache.
+	 *
+	 * @param {boolean} [silent=false]
+	 * @returns {string}
+	 */
 	async refreshTokens(silent = false) {
 		if (!appState.isLoading && !silent) {
 			appStateProvider.isLoading = true;
