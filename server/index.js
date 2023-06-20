@@ -44,7 +44,7 @@ app.get('/api/public', (req, res) => {
 	});
 });
 
-app.get('/api/private', verifyJwt({ audience: getAudience() }), (req, res) =>
+app.get('/api/private', verifyJwt({ audience: getAudience(server?.audience || auth?.audience) }), (req, res) =>
 	res.json({
 		success: true,
 		message:
