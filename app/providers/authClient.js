@@ -92,7 +92,6 @@ export class AuthClient extends Auth0Client {
 	 * Forces the app to fetch new tokens rather than use the existing tokens from the cache.
 	 *
 	 * @param {boolean} [silent=false]
-	 * @returns {string}
 	 */
 	async refreshTokens(silent = false) {
 		if (!appState.isLoading && !silent) {
@@ -115,8 +114,6 @@ export class AuthClient extends Auth0Client {
 		if (!force) {
 			authOptions = { cacheMode: 'cache-only', ...authOptions };
 		}
-
-		console.log(authOptions);
 
 		authStateProvider.accessToken = await this.getTokenSilently(authOptions);
 	}
