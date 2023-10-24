@@ -32,9 +32,25 @@ export const callApi = async ({ auth0, url, btnId }) => {
 
 		history.pushState('', null, window.location.pathname);
 
-		const accessToken = ['scoped-api-btn', 'private-api-btn'].includes(btnId)
-			? await auth0.refreshTokens(true)
-			: await auth0.getAccessToken();
+		let accessToken = undefined;
+
+		if (['step-up-api-btn'].includes(btnId)) {
+		  const authOptions =  {
+				cacheMode: "off",
+				authorizationParams: {
+					acr_values: `http://schemas.openid.net/pape/policies/2007/06/multi-factor`,
+					scope: "authRocks:admin",
+					redirect_uri: window.location.href,
+					audience: auth0.config?.audience,
+				},
+			}
+		 	accessToken = await auth0.getTokenWithPopup(authOptions);
+		}
+		else {
+			accessToken = ['scoped-api-btn', 'private-api-btn'].includes(btnId)
+				? await auth0.refreshTokens(true)
+				: await auth0.getAccessToken();
+		}
 
 		const fetchOptions = {
 			method: 'GET',
@@ -96,6 +112,7 @@ export default async () => {
 	const publicAPIButton = document.querySelector('#public-api-btn');
 	const privateAPIButton = document.querySelector('#private-api-btn');
 	const scopedAPIButton = document.querySelector('#scoped-api-btn');
+	const stepUpAPIButton = document.querySelector("#step-up-api-btn");
 
 	loginButton.addEventListener('click', () => auth0.login());
 
@@ -124,6 +141,14 @@ export default async () => {
 			auth0,
 			url: window.location.origin + apiUrl + '/scoped',
 			btnId: 'scoped-api-btn',
+		})
+	);
+
+	stepUpAPIButton.addEventListener('click', () =>
+		callApi({
+			auth0,
+			url: window.location.origin + apiUrl + '/admin',
+			btnId: 'step-up-api-btn',
 		})
 	);
 

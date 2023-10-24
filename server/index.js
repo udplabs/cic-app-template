@@ -60,6 +60,22 @@ app.get('/api/scoped', verifyJwt({ claimsToAssert: { 'permissions.includes': per
 	})
 );
 
+app.get(
+  "/api/admin",
+  verifyJwt({
+    claimsToAssert: {
+      "api:authRocks/stepUp.includes": ["authRocks:admin"],
+    },
+    audience: getAudience(server?.audience || auth?.audience),
+  }),
+  (req, res) =>
+    res.json({
+      success: true,
+      message:
+        "This is the admin API. Only a valid access token issued with the api:authRocks/stepUp claim with the value of authRocks:admin and a valid audience has access. You did it!",
+    })
+);
+
 // app.all('*', (req, res) => res.json({ success: true, message: 'This is the home route for this API server!' }))
 
 export const handler = app;
