@@ -25,6 +25,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const { auth, server } = config || {};
+const audience = server?.audience ?? auth?.audience ?? auth?.authorizationParams?.audience ?? 'api:authrocks/';
 
 const { SERVER_AUTH_PERMISSIONS: AUTH_PERMISSIONS = server?.permissions || [] } = process.env;
 
@@ -44,7 +45,7 @@ app.get('/api/public', (req, res) => {
 	});
 });
 
-app.get('/api/private', verifyJwt({ audience: getAudience(server?.audience || auth?.audience) }), (req, res) =>
+app.get('/api/private', verifyJwt({ audience: getAudience(audience) }), (req, res) =>
 	res.json({
 		success: true,
 		message:

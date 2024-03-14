@@ -9,12 +9,21 @@ export class AuthClient extends Auth0Client {
 	constructor(config) {
 		const { hasChanged, config: _config, previousConfig } = getConfig();
 
-		const { auth: authConfig } = _config || {};
-		const { auth: prevAuthConfig } = previousConfig || {};
+		const {
+			audience: _previousAudience,
+			authorizationParams: _previousAuthParams,
+			..._prevAuthConfig
+		} = previousConfig?.auth || {};
+		const { audience = _previousAudience, authorizationParams, ...authConfig } = _config?.auth || {};
 
 		config = {
-			...(prevAuthConfig ?? authConfig),
-			...config,
+			..._prevAuthConfig,
+			...authConfig,
+			authorizationParams: {
+				..._previousAuthParams,
+				...authorizationParams,
+				audience,
+			},
 		};
 
 		try {
@@ -55,6 +64,8 @@ export class AuthClient extends Auth0Client {
 	async login(targetUrl) {
 		try {
 			console.log('Logging in', targetUrl);
+
+			console.log(JSON.stringify(this.config, null, 2));
 
 			const options = {
 				authorizationParams: {
@@ -175,10 +186,13 @@ export class AuthClient extends Auth0Client {
 			appStateProvider.isLoading = true;
 		}
 
+		console.log(JSON.stringify(this.newConfig, null, 2));
 		const authOptions = {
 			cacheMode: force ? 'off' : 'on',
 			authorizationParams: {
-				audience: (force ? this.newConfig?.audience : this.config?.audience) ?? undefined,
+				audience:
+					(force ? this.newConfig?.authorizationParams?.audience : this.config?.authorizationParams?.audience) ??
+					undefined,
 			},
 		};
 
