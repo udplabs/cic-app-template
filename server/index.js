@@ -25,9 +25,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const { auth, server } = config || {};
-const audience = server?.audience ?? auth?.audience ?? auth?.authorizationParams?.audience ?? 'api:authrocks/';
 
-const { SERVER_AUTH_PERMISSIONS: AUTH_PERMISSIONS = server?.permissions || [] } = process.env;
+const {
+	SERVER_AUDIENCE: audience = server?.audience ??
+		auth?.audience ??
+		auth?.authorizationParams?.audience ??
+		'api://authrocks/',
+	SERVER_AUTH_PERMISSIONS: AUTH_PERMISSIONS = server?.permissions || ['authRocks'],
+} = process.env;
 
 const permissions = Array.isArray(AUTH_PERMISSIONS) ? AUTH_PERMISSIONS : AUTH_PERMISSIONS.split(' ');
 

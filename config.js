@@ -1,5 +1,8 @@
 const defaultAuthConfig = {
 	cacheLocation: 'localstorage',
+	authorizationParams: {
+		scope: 'openid profile email',
+	},
 };
 
 const config = {
