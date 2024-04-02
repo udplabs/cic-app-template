@@ -4,7 +4,7 @@ This App is based on the [Auth0 SPA JS Login Quickstart](https://github.com/auth
 
 It is part of the Auth Rocks developer workshop presented by [Okta](https://okta.com)
 
-<!-- [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://101.auth.rocks) -->
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/udplabs/cic-app-template?file=config.js&view=editor&title=auth.rocks)
 
 ## Configuring the App
 
