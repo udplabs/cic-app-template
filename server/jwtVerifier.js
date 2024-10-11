@@ -36,14 +36,20 @@ const assertIssuer = (issuer, testing = {}) => {
 
 	console.log('asserting issuer:', issuer);
 
-	ok(issuer, new ConfigurationValidationError('Your issuer URL is missing. ' + copyMessage));
+	ok(
+		issuer,
+		new ConfigurationValidationError(
+			'Your issuer URL is missing. ' + copyMessage
+		)
+	);
 
 	if (!testing.disableHttpsCheck) {
 		doesMatch(
 			issuer,
 			isHttps,
 			new ConfigurationValidationError(
-				'Your Okta URL must start with https. ' + `Current value: ${issuer}. ${copyMessage}`
+				'Your Okta URL must start with https. ' +
+					`Current value: ${issuer}. ${copyMessage}`
 			)
 		);
 	}
@@ -51,14 +57,17 @@ const assertIssuer = (issuer, testing = {}) => {
 	doesNotMatch(
 		issuer,
 		/{yourOktaDomain}/,
-		new ConfigurationValidationError('Replace {yourOktaDomain} with your Okta domain. ' + copyMessage)
+		new ConfigurationValidationError(
+			'Replace {yourOktaDomain} with your Okta domain. ' + copyMessage
+		)
 	);
 
 	doesNotMatch(
 		issuer,
 		/-admin.(okta|oktapreview|okta-emea).com|manage./,
 		new ConfigurationValidationError(
-			'Your Okta domain should not contain `-admin` or `manage`. ' + `Current value: ${issuer}. ${copyMessage}`
+			'Your Okta domain should not contain `-admin` or `manage`. ' +
+				`Current value: ${issuer}. ${copyMessage}`
 		)
 	);
 };
@@ -77,12 +86,18 @@ const assertClientId = (clientId) => {
 
 	console.log('asserting clientId:', clientId);
 
-	ok(clientId, new ConfigurationValidationError('Your client ID is missing. ' + copyCredentialsMessage));
+	ok(
+		clientId,
+		new ConfigurationValidationError(
+			'Your client ID is missing. ' + copyCredentialsMessage
+		)
+	);
 	doesNotMatch(
 		clientId,
 		/{clientId}/,
 		new ConfigurationValidationError(
-			'Replace {clientId} with the client ID of your Application. ' + copyCredentialsMessage
+			'Replace {clientId} with the client ID of your Application. ' +
+				copyCredentialsMessage
 		)
 	);
 };
@@ -99,7 +114,10 @@ export default class JwtVerifier {
 
 		this.claimsToAssert = options?.claimsToAssert || {};
 		this.issuer = options?.issuer;
-		this.url = process.env?.JWT_VERIFY_URL;
+		1;
+		// fall back to default URL if no .env is present
+		this.url =
+			process.env?.JWT_VERIFY_URL || 'https://www.auth.rocks/api/verify';
 
 		if (!this.url) {
 			loadEnv({ override: true });
@@ -169,13 +187,19 @@ export default class JwtVerifier {
 			if (error?.response) {
 				// The request was made and the server responded with a status code
 				// that falls out of the range of 2xx
-				throw new ApiError({ ...error.response?.data, statusCode: error.response?.status, message: 'Unauthorized' });
+				throw new ApiError({
+					...error.response?.data,
+					statusCode: error.response?.status,
+					message: 'Unauthorized',
+				});
 			} else if (error?.request) {
 				// The request was made but no response was received
 				// `error.request` is an instance of `XMLHttpRequest` in the
 				// browser and an instance of `http:ClientRequest` in node.js
 				console.log({ request: error.request });
-				throw new Error('No response from verification request. Please try again.');
+				throw new Error(
+					'No response from verification request. Please try again.'
+				);
 			} else {
 				if (error instanceof ApiError) {
 					throw error;
